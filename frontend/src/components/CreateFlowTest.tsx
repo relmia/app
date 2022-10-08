@@ -1,6 +1,7 @@
 import { Framework } from '@superfluid-finance/sdk-core';
+import { debug } from 'console';
 import { useEffect, useState } from 'react';
-import { useAccount, useProvider } from 'wagmi';
+import { useAccount, useNetwork, useProvider } from 'wagmi';
 import useTokenContractAddressAndAbi, { GetContractArgs } from '../hooks/useTokenContractAddressAndAbi';
 
 const LOCAL_HOST_RESOLVER_ADDRESS = '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512';
@@ -10,24 +11,25 @@ const CreateFlowInner = ({ getContractArgs: { chainId } }: { getContractArgs: Ge
 
   const provider = useProvider();
 
+  const { chain } = useNetwork();
+
   const { address } = useAccount();
 
   useEffect(() => {
     (async () => {
       if (!chainId) return;
 
-      console.log('create fw');
+      const resolverAddress = chain?.name === 'hardhat' ? LOCAL_HOST_RESOLVER_ADDRESS : undefined;
 
       const sf = await Framework.create({
         chainId,
         provider,
-        resolverAddress: LOCAL_HOST_RESOLVER_ADDRESS, //this is how you get the resolver address
+        resolverAddress,
       });
 
-      console.log('created fw');
       setSf(sf);
     })();
-  }, [provider, chainId]);
+  }, [provider, chainId, chain]);
 
   const [daiAddress, setDaiAddress] = useState<string>();
 
@@ -36,10 +38,9 @@ const CreateFlowInner = ({ getContractArgs: { chainId } }: { getContractArgs: Ge
   const [balance, setBalance] = useState<string>();
 
   useEffect(() => {
-    console.log({ sf, address, provider });
     if (!sf || !address || !provider) return;
 
-    async () => {
+    (async () => {
       const superToken = await sf.loadSuperToken('fDAIx');
 
       const balance = await superToken.balanceOf({
@@ -48,7 +49,7 @@ const CreateFlowInner = ({ getContractArgs: { chainId } }: { getContractArgs: Ge
       });
 
       setBalance(balance);
-    };
+    })();
   }, [sf, address, provider]);
 
   return (

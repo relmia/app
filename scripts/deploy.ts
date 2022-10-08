@@ -42,15 +42,29 @@ async function deployLocalFramework(accounts: SignerWithAddress[]) {
 
 const HARDHAT_CHAIN_ID = 31337;
 
-async function getSuperToken(provider: Provider) {
+// todo: make more dynamic
+const POLYGON_MUMBAI_RESOLVER_ADDRESS = '0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3';
+
+type Network = typeof network;
+
+async function getHostAddress(network: Network) {
+  if (network.name === 'localhost') return '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853';
+
+  if (network.name === 'mumbai') return '0xEB796bdb90fFA0f28255275e16936D25d3418603';
+}
+
+async function getSuperToken(provider: Provider, network: Network) {
+  const resolverAddress = network.name === 'localhost' ? process.env.RESOLVER_ADDRESS : POLYGON_MUMBAI_RESOLVER_ADDRESS;
   const sf = await Framework.create({
-    chainId: HARDHAT_CHAIN_ID,
+    chainId: network.config.chainId as number,
     provider,
-    resolverAddress: process.env.RESOLVER_ADDRESS, //this is how you get the resolver address
+    resolverAddress, //this is how you get the resolver address
     protocolReleaseVersion: 'test',
   });
 
   const daix = await sf.loadSuperToken('fDAIx');
+
+  if (!daix) throw new Error('invalid address');
 
   return daix;
 }
@@ -73,14 +87,16 @@ async function main() {
 
   const App = await ethers.getContractFactory('TradeableCashflow');
 
-  console.log('GET SUPER TOKEN');
-  const daix = await getSuperToken(deployer.provider as Provider);
+  console.log('get super token');
+  const daix = await getSuperToken(deployer.provider as Provider, network);
+
+  console.log('deploy contract');
 
   const contract = await App.deploy(
-    accounts[1].address,
+    deployer.address,
     'TradeableCashflow',
     'TCF',
-    '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853',
+    getHostAddress(network),
     daix.address,
   );
   await contract.deployed();

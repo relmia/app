@@ -2,17 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { chain } from 'wagmi';
 import { useAccount } from 'wagmi';
 import localHostAddress from '../contracts/localhost/contract-address.json';
-import localHostContract from '../contracts/localhost/Token.json';
 import goerliHostAddress from '../contracts/goerli/contract-address.json';
-import goerilHostContract from '../contracts/goerli/Token.json';
+import mumbaiHostAddress from '../contracts/mumbai/contract-address.json';
 import { ContractInterface } from 'ethers';
 
 export type GetContractArgs = {
   /** Contract address or ENS name */
   addressOrName: string;
   /** Contract interface or ABI */
-  contractInterface: ContractInterface;
-  /** Signer or provider to attach to contract */
   chainId: number;
 };
 
@@ -22,7 +19,6 @@ const getContractAddressAndAbi = (chainId: number | undefined): GetContractArgs 
   if (chainId === chain.hardhat.id) {
     return {
       addressOrName: localHostAddress.Token,
-      contractInterface: localHostContract.abi,
       chainId,
     };
   }
@@ -30,7 +26,13 @@ const getContractAddressAndAbi = (chainId: number | undefined): GetContractArgs 
   if (chainId === chain.goerli.id) {
     return {
       addressOrName: goerliHostAddress.Token,
-      contractInterface: goerilHostContract.abi,
+      chainId,
+    };
+  }
+
+  if (chainId === chain.polygonMumbai.id) {
+    return {
+      addressOrName: mumbaiHostAddress.Token,
       chainId,
     };
   }
