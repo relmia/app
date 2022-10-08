@@ -23,3 +23,5 @@ artifacts
 
 graph-container/bin
 graph-container/data
+.idea
+yarn-error.log

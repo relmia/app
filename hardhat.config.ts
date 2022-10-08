@@ -1,4 +1,8 @@
-require('@nomicfoundation/hardhat-toolbox');
+import '@nomicfoundation/hardhat-toolbox'
+import '@nomiclabs/hardhat-ethers'
+import '@typechain/hardhat'
+import '@nomiclabs/hardhat-web3'
+
 
 // Go to https://www.alchemyapi.io, sign up, create
 // a new App in its dashboard, and replace "KEY" with its key
@@ -11,7 +15,7 @@ const ALCHEMY_API_KEY = '7JOHPLbiPe75KZ3OBykXYwjZiHwcmX2x';
 const GOERLI_PRIVATE_KEY = '2b0ff6875209eb835eff51dbede43a1b8c71de97271923f8818d7afe4f405aba';
 
 module.exports = {
-  solidity: '0.8.9',
+  solidity: '0.8.14',
   networks: {
     goerli: {
       url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
