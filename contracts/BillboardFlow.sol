@@ -9,23 +9,25 @@ import {IConstantFlowAgreementV1} from "@superfluid-finance/ethereum-contracts/c
 
 import {SuperAppBase} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 
+import 'hardhat/console.sol';
+
 /// @dev Constant Flow Agreement registration key, used to get the address from the host.
 bytes32 constant CFA_ID = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
 
 /// @dev Thrown when the receiver is the zero adress.
-error InvalidReceiver();
+    error InvalidReceiver();
 
 /// @dev Thrown when receiver is also a super app.
-error ReceiverIsSuperApp();
+    error ReceiverIsSuperApp();
 
 /// @dev Thrown when the callback caller is not the host.
-error Unauthorized();
+    error Unauthorized();
 
 /// @dev Thrown when the token being streamed to this contract is invalid
-error InvalidToken();
+    error InvalidToken();
 
 /// @dev Thrown when the agreement is other than the Constant Flow Agreement V1
-error InvalidAgreement();
+    error InvalidAgreement();
 
 /// @title Stream Redirection Contract
 /// @notice This contract is a registered super app, meaning it receives
@@ -40,6 +42,8 @@ contract BillboardFlow is SuperAppBase {
     /// @notice This is the current receiver that all streams will be redirected to.
     address public _receiver;
 
+    uint96 _currentFlow;
+
     constructor(
         ISuperfluid host,
         ISuperToken acceptedToken,
@@ -53,8 +57,8 @@ contract BillboardFlow is SuperAppBase {
         _receiver = receiver;
 
         cfaV1Lib = CFAv1Library.InitData({
-            host: host,
-            cfa: IConstantFlowAgreementV1(address(host.getAgreementClass(CFA_ID)))
+        host : host,
+        cfa : IConstantFlowAgreementV1(address(host.getAgreementClass(CFA_ID)))
         });
 
         // Registers Super App, indicating it is the final level (it cannot stream to other super
@@ -62,9 +66,8 @@ contract BillboardFlow is SuperAppBase {
         // `after*` callbacks.
         host.registerApp(
             SuperAppDefinitions.APP_LEVEL_FINAL |
-                SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
-                SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
-                SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
+            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
         );
     }
 
@@ -97,16 +100,16 @@ contract BillboardFlow is SuperAppBase {
     /// @return receiver Receiving address.
     /// @return flowRate Flow rate from this contract to the receiver.
     function currentReceiver()
-        external
-        view
-        returns (
-            uint256 startTime,
-            address receiver,
-            int96 flowRate
-        )
+    external
+    view
+    returns (
+        uint256 startTime,
+        address receiver,
+        int96 flowRate
+    )
     {
         if (receiver != address(0)) {
-            (startTime, flowRate, , ) = cfaV1Lib.cfa.getFlow(
+            (startTime, flowRate,,) = cfaV1Lib.cfa.getFlow(
                 _acceptedToken,
                 address(this),
                 _receiver
@@ -127,13 +130,39 @@ contract BillboardFlow is SuperAppBase {
         bytes calldata, //_cbdata
         bytes calldata _ctx
     )
-        external
-        override
-        onlyExpected(_superToken, _agreementClass)
-        onlyHost
-        returns (bytes memory newCtx)
+    external
+    override
+    onlyExpected(_superToken, _agreementClass)
+    onlyHost
+    returns (bytes memory newCtx)
     {
         return _updateOutflow(_ctx);
+    }
+
+
+    function beforeAgreementCreated(
+        ISuperToken /*superToken*/,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*_ctx*/
+    )
+    external
+    view
+    virtual
+    override
+    returns (bytes memory newCtx)
+    {
+
+        int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
+
+        (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
+
+        int96 inFlowRate = netFlowRate + outFlowRate;
+
+
+        //revert("error");
+
     }
 
     function afterAgreementUpdated(
@@ -144,12 +173,14 @@ contract BillboardFlow is SuperAppBase {
         bytes calldata, // _cbdata,
         bytes calldata _ctx
     )
-        external
-        override
-        onlyExpected(_superToken, _agreementClass)
-        onlyHost
-        returns (bytes memory newCtx)
+    external
+    override
+    onlyExpected(_superToken, _agreementClass)
+    onlyHost
+    returns (bytes memory newCtx)
     {
+
+        //revert("Unsupported callback - Before Agreement Created");
         return _updateOutflow(_ctx);
     }
 
@@ -181,7 +212,7 @@ contract BillboardFlow is SuperAppBase {
 
         if (newReceiver == _receiver) return;
 
-        (, int96 outFlowRate, , ) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
+        (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
 
         if (outFlowRate > 0) {
             cfaV1Lib.deleteFlow(address(this), _receiver, _acceptedToken);
@@ -207,7 +238,7 @@ contract BillboardFlow is SuperAppBase {
 
         int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
 
-        (, int96 outFlowRate, , ) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
+        (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
 
         int96 inFlowRate = netFlowRate + outFlowRate;
 
