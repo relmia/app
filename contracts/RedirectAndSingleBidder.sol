@@ -29,7 +29,7 @@ error InvalidAgreement();
 
 /// @title Stream Redirection Contract
 /// @notice This contract is a registered super app, meaning it receives
-contract RedirectAll is SuperAppBase {
+contract RedirectAndSingleBidder is SuperAppBase {
     // CFA library setup
     using CFAv1Library for CFAv1Library.InitData;
     CFAv1Library.InitData public cfaV1Lib;
