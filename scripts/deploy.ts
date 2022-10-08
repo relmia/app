@@ -43,23 +43,31 @@ async function deployLocalFramework(accounts: SignerWithAddress[]) {
 const HARDHAT_CHAIN_ID = 31337;
 
 // todo: make more dynamic
-const POLYGON_MUMBAI_RESOLVER_ADDRESS = '0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3';
-
 type Network = typeof network;
 
 async function getHostAddress(network: Network) {
   if (network.name === 'localhost') return '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853';
 
   if (network.name === 'mumbai') return '0xEB796bdb90fFA0f28255275e16936D25d3418603';
+
+  if (network.name === 'goerli') return '0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9';
 }
 
+const getResolverAddress = (network: Network) => {
+  if (network.name === 'localhost') return process.env.RESOLVER_ADDRESS;
+
+  if (network.name === 'mumbai') return '0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3';
+
+  if (network.name === 'goerli') return '0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E';
+};
+
 async function getSuperToken(provider: Provider, network: Network) {
-  const resolverAddress = network.name === 'localhost' ? process.env.RESOLVER_ADDRESS : POLYGON_MUMBAI_RESOLVER_ADDRESS;
+  const resolverAddress = getResolverAddress(network);
   const sf = await Framework.create({
     chainId: network.config.chainId as number,
     provider,
     resolverAddress, //this is how you get the resolver address
-    protocolReleaseVersion: 'test',
+    // protocolReleaseVersion: 'test',
   });
 
   const daix = await sf.loadSuperToken('fDAIx');
