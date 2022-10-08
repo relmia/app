@@ -1,5 +1,5 @@
 import { BigInt } from '@graphprotocol/graph-ts';
-import { Token, Approval, ApprovalForAll, OwnershipTransferred, Transfer, SafeMint } from '../generated/Token/Tokensss';
+import { Token, Approval, ApprovalForAll, OwnershipTransferred, Transfer, SafeMint } from '../generated/Token/Token';
 
 import { Token as TokenEntity } from '../generated/schema';
 
