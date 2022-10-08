@@ -13,6 +13,7 @@ export type GetContractArgs = {
   /** Contract interface or ABI */
   contractInterface: ContractInterface;
   /** Signer or provider to attach to contract */
+  chainId: number;
 };
 
 const getContractAddressAndAbi = (chainId: number | undefined): GetContractArgs | null => {
@@ -22,6 +23,7 @@ const getContractAddressAndAbi = (chainId: number | undefined): GetContractArgs 
     return {
       addressOrName: localHostAddress.Token,
       contractInterface: localHostContract.abi,
+      chainId,
     };
   }
 
@@ -29,6 +31,7 @@ const getContractAddressAndAbi = (chainId: number | undefined): GetContractArgs 
     return {
       addressOrName: goerliHostAddress.Token,
       contractInterface: goerilHostContract.abi,
+      chainId,
     };
   }
 
@@ -46,7 +49,6 @@ const useTokenContractAddressAndAbi = () => {
 
       if (!chainId) return;
 
-      console.log({ chainId });
       const addressAndAbi = getContractAddressAndAbi(chainId);
 
       setContractArgs(addressAndAbi);
