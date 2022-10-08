@@ -1,4 +1,8 @@
-require('@nomicfoundation/hardhat-toolbox');
+import '@nomicfoundation/hardhat-toolbox'
+import '@nomiclabs/hardhat-ethers'
+import '@typechain/hardhat'
+import '@nomiclabs/hardhat-web3'
+
 
 // Go to https://www.alchemyapi.io, sign up, create
 // a new App in its dashboard, and replace "KEY" with its key
