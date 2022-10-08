@@ -1,0 +1,7 @@
+overwrite: true
+schema: 'frontend/src/contracts/localhost/Token.json'
+generates:
+  src/generated/graphql.ts:
+    plugins:
+      - 'typescript'
+      - 'typescript-resolvers'
