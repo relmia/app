@@ -55,10 +55,11 @@ async function getHostAddress(network: Network) {
 
 async function getSuperToken(provider: Provider, network: Network) {
   const resolverAddress = network.name === 'localhost' ? process.env.RESOLVER_ADDRESS : POLYGON_MUMBAI_RESOLVER_ADDRESS;
+  console.log('!!!!RESOLVER', resolverAddress);
   const sf = await Framework.create({
-    chainId: network.config.chainId as number,
+    chainId: network.name === 'localhost' ? HARDHAT_CHAIN_ID : (network.config.chainId as number),
     provider,
-    resolverAddress, //this is how you get the resolver address
+    resolverAddress,
     protocolReleaseVersion: 'test',
   });
 

@@ -5,6 +5,7 @@ import { Contract, Signer } from 'ethers';
 import SuperToken, { WrapperSuperToken } from '@superfluid-finance/sdk-core/dist/module/SuperToken';
 
 import { Framework } from '@superfluid-finance/sdk-core';
+import { defaultAbiCoder } from '@ethersproject/abi';
 const { assert } = require('chai');
 
 // TODO BUILD A HARDHAT PLUGIN AND REMOVE WEB3 FROM THIS
@@ -109,6 +110,27 @@ beforeEach(async function () {
 });
 
 describe('sending flows', async function () {
+  it.only('sending flow with live peer id can be retrieved back', async () => {
+    const livePeerId = 'asdfasdfasdf';
+
+    const createFlowOperation = sf.cfaV1.createFlow({
+      receiver: TradeableCashflow.address,
+      superToken: daix.address,
+      flowRate: '100000000',
+      userData: defaultAbiCoder.encode(['string'], [livePeerId]),
+    });
+
+    const txn = await createFlowOperation.exec(accounts[0]);
+
+    await txn.wait();
+
+    const decodedContext = await TradeableCashflow.functions.uData();
+
+    const decodedUserData = web3.eth.abi.decodeParameter('string', decodedContext.userData);
+
+    assert.equal(livePeerId, decodedUserData);
+  });
+
   it('Case #1 - Alice sends a flow', async () => {
     console.log(TradeableCashflow.address);
 

@@ -37,8 +37,13 @@ contract BillboardFlow is SuperAppBase {
     /// @dev Super token that may be streamed to this contract
     ISuperToken internal immutable _acceptedToken;
 
+    ISuperfluid private _host;
+
     /// @notice This is the current receiver that all streams will be redirected to.
     address public _receiver;
+
+    ISuperfluid.Context public uData;
+    string public userData;
 
     constructor(
         ISuperfluid host,
@@ -51,6 +56,7 @@ contract BillboardFlow is SuperAppBase {
 
         _acceptedToken = acceptedToken;
         _receiver = receiver;
+        _host = host;
 
         cfaV1Lib = CFAv1Library.InitData({
             host: host,
@@ -133,6 +139,17 @@ contract BillboardFlow is SuperAppBase {
         onlyHost
         returns (bytes memory newCtx)
     {
+        // decode Context - store full context as uData variable for easy visualization purposes
+        ISuperfluid.Context memory decompiledContext = _host.decodeCtx(_ctx);
+        uData = decompiledContext;
+
+        //set userData variable to decoded value
+        //for now, this value is hardcoded as a string - this will be made clear in flow creation scripts within the tutorial
+        //this string will serve as a message on an 'NFT billboard' when a flow is created with recipient = tradeableCashflow
+        //it will be displayed on a front end for assistance in userData explanation
+
+        userData = abi.decode(decompiledContext.userData, (string));
+
         return _updateOutflow(_ctx);
     }
 
@@ -150,6 +167,10 @@ contract BillboardFlow is SuperAppBase {
         onlyHost
         returns (bytes memory newCtx)
     {
+        ISuperfluid.Context memory decodedContext = _host.decodeCtx(_ctx);
+        uData = decodedContext;
+        userData = abi.decode(decodedContext.userData, (string)); 
+
         return _updateOutflow(_ctx);
     }
 
