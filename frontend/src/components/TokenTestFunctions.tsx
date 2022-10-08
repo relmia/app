@@ -1,8 +1,7 @@
 import { GetContractArgs } from '@wagmi/core';
 import { useState } from 'react';
-import { useContract, useContractRead, useContractWrite, usePrepareContractWrite } from 'wagmi';
+import { useContractRead, useContractWrite, usePrepareContractWrite } from 'wagmi';
 import useTokenContractAddressAndAbi from '../hooks/useTokenContractAddressAndAbi';
-import { Token, SafeMintCall } from '../../../subgraph/generated/Token/Token';
 
 const TokenOwnerId = ({ getContractArgs }: { getContractArgs: GetContractArgs }) => {
   const { data, isError, isLoading } = useContractRead({
