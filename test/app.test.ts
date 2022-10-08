@@ -187,7 +187,7 @@ describe('sending flows', async function () {
     assert.equal(appFlowRate, 0, 'App flowRate not zero');
   });
 
-  it('Case 3: Owners flow should be same after a new flow (minor than the actual) has created ', async () => {
+  it.only('Case 3: Owners flow should be same after a new flow (minor than the actual) has created ', async () => {
     const aliceAcct = accounts[0];
     const jamesAcct = accounts[2];
     const ownerAcct = accounts[1];
@@ -234,9 +234,17 @@ describe('sending flows', async function () {
       flowRate: jamesFlowRate,
     });
 
-    const jamesOpTx = await jamesOp.exec(jamesAcct);
+    let errorOccured = false;
 
-    await jamesOpTx.wait();
+    try {
+      const jamesOpTx = await jamesOp.exec(jamesAcct);
+
+      await jamesOpTx.wait();
+    } catch (e) {
+      errorOccured = true;
+    }
+
+    assert.equal(errorOccured, true, 'Expected an error to have occureed');
 
     const appFlowRate = await sf.cfaV1.getNetFlow({
       superToken: daix.address,

@@ -29,6 +29,12 @@ bytes32 constant CFA_ID = keccak256("org.superfluid-finance.agreements.ConstantF
 /// @dev Thrown when the agreement is other than the Constant Flow Agreement V1
     error InvalidAgreement();
 
+struct WinningBid { 
+   bool set;
+   address sender;
+   int256 flow;
+}
+
 /// @title Stream Redirection Contract
 /// @notice This contract is a registered super app, meaning it receives
 contract BillboardFlow is SuperAppBase {
@@ -42,7 +48,11 @@ contract BillboardFlow is SuperAppBase {
     /// @notice This is the current receiver that all streams will be redirected to.
     address public _receiver;
 
+    ISuperfluid private _host;
+
     uint96 _currentFlow;
+
+    WinningBid internal _winningBid;
 
     constructor(
         ISuperfluid host,
@@ -55,6 +65,9 @@ contract BillboardFlow is SuperAppBase {
 
         _acceptedToken = acceptedToken;
         _receiver = receiver;
+        _host = host;
+
+        _winningBid.set = false;
 
         cfaV1Lib = CFAv1Library.InitData({
         host : host,
@@ -66,6 +79,7 @@ contract BillboardFlow is SuperAppBase {
         // `after*` callbacks.
         host.registerApp(
             SuperAppDefinitions.APP_LEVEL_FINAL |
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
         );
@@ -119,14 +133,20 @@ contract BillboardFlow is SuperAppBase {
         }
     }
 
+    function _updateCurrentWinningBid(address sender, int256 _winningBidFlow) internal {
+        _winningBid.set = true;
+        _winningBid.sender = sender;
+        _winningBid.flow = _winningBidFlow;
+    }
+
     // ---------------------------------------------------------------------------------------------
     // SUPER APP CALLBACKS
 
     function afterAgreementCreated(
         ISuperToken _superToken,
         address _agreementClass,
-        bytes32, //_agreementId
-        bytes calldata, //_agreementData
+        bytes32 _agreementId,
+        bytes calldata _agreementData,
         bytes calldata, //_cbdata
         bytes calldata _ctx
     )
@@ -136,42 +156,32 @@ contract BillboardFlow is SuperAppBase {
     onlyHost
     returns (bytes memory newCtx)
     {
+        // get the newly created flow's rate
+        (, int256 newAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
+        // if there is a current winning bid
+        if (_winningBid.set)  {
+            // if the new flow rate is less than the current bid flow rate reject it
+            if (newAgreementFlowRate <= _winningBid.flow) {
+                revert("New flow rate is lass than current winning flow rate");
+            } else {
+                address from = _winningBid.sender;
+                address to = address(this);
+                // bytes newCtx = _ctx;
+                
+                cfaV1Lib.deleteFlowWithCtx(_ctx, from, to, _superToken);
+            }
+        }
+
+        (address sender,) = abi.decode(_agreementData, (address,address));
+        _updateCurrentWinningBid(sender, newAgreementFlowRate);
         return _updateOutflow(_ctx);
-    }
-
-
-    function beforeAgreementCreated(
-        ISuperToken /*superToken*/,
-        address /*agreementClass*/,
-        bytes32 /*agreementId*/,
-        bytes calldata agreementData,
-        bytes calldata /*_ctx*/
-    )
-    external
-    view
-    virtual
-    override
-    returns (bytes memory newCtx)
-    {
-
-        (address sender,) = abi.decode(agreementData, (address,address));
-
-
-        int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
-
-        // get incoming flow rate
-        
-
-        // if incoming flow <= netFlow reject
-
-
     }
 
     function afterAgreementUpdated(
         ISuperToken _superToken,
         address _agreementClass,
-        bytes32, // _agreementId,
-        bytes calldata, // _agreementData,
+        bytes32 _agreementId,
+        bytes calldata _agreementData,
         bytes calldata, // _cbdata,
         bytes calldata _ctx
     )
@@ -181,8 +191,11 @@ contract BillboardFlow is SuperAppBase {
     onlyHost
     returns (bytes memory newCtx)
     {
+        (, int256 updatedAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
+        (address sender,) = abi.decode(_agreementData, (address,address));
 
-        //revert("Unsupported callback - Before Agreement Created");
+        _updateCurrentWinningBid(sender, updatedAgreementFlowRate);
+
         return _updateOutflow(_ctx);
     }
 
