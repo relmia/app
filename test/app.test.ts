@@ -80,8 +80,10 @@ before(async function () {
   //get the contract object for the erc20 token
   let daiAddress = daix.underlyingToken?.address;
   dai = new ethers.Contract(daiAddress, daiABI, accounts[0]);
-  let App = await ethers.getContractFactory('TradeableCashflow', accounts[0]);
+});
 
+beforeEach(async function () {
+  let App = await ethers.getContractFactory('TradeableCashflow', accounts[0]);
   TradeableCashflow = await App.deploy(
     accounts[1].address,
     'TradeableCashflow',
@@ -89,9 +91,7 @@ before(async function () {
     sf.settings.config.hostAddress,
     daix.address,
   );
-});
 
-beforeEach(async function () {
   await dai.connect(accounts[0]).mint(accounts[0].address, ethers.utils.parseEther('1000'));
 
   await dai.connect(accounts[0]).approve(daix.address, ethers.utils.parseEther('1000'));
@@ -111,20 +111,18 @@ beforeEach(async function () {
 
 describe('sending flows', async function () {
   it('Case #1 - Alice sends a flow', async () => {
-    console.log(TradeableCashflow.address);
+    const aliceAddress = accounts[0];
+    const ownerAddress = accounts[1].address;
 
-    const appInitialBalance = await daix.balanceOf({
-      account: TradeableCashflow.address,
-      providerOrSigner: accounts[0],
-    });
+    const aliceFlowRate = '100000000';
 
     const createFlowOperation = sf.cfaV1.createFlow({
       receiver: TradeableCashflow.address,
       superToken: daix.address,
-      flowRate: '100000000',
+      flowRate: aliceFlowRate,
     });
 
-    const txn = await createFlowOperation.exec(accounts[0]);
+    const txn = await createFlowOperation.exec(aliceAddress);
 
     await txn.wait();
 
@@ -136,50 +134,31 @@ describe('sending flows', async function () {
 
     const ownerFlowRate = await sf.cfaV1.getNetFlow({
       superToken: daix.address,
-      account: accounts[1].address,
+      account: ownerAddress,
       providerOrSigner: superSigner,
     });
 
-    const appFinalBalance = await daix.balanceOf({
-      account: TradeableCashflow.address,
-      providerOrSigner: superSigner,
-    });
-
-    assert.equal(ownerFlowRate, '100000000', 'owner not receiving 100% of flowRate');
+    assert.equal(ownerFlowRate, aliceFlowRate, 'owner not receiving 100% of flowRate');
 
     assert.equal(appFlowRate, 0, 'App flowRate not zero');
-
-    assert.equal(appInitialBalance.toString(), appFinalBalance.toString(), "balances aren't equal");
   });
 
   it('Case #2 - Alice upates flows to the contract', async () => {
-    const appInitialBalance = await daix.balanceOf({
-      account: TradeableCashflow.address,
-      providerOrSigner: accounts[0],
-    });
+    const aliceAddress = accounts[0];
 
-    const initialOwnerFlowRate = await sf.cfaV1.getNetFlow({
+    const aliceFlowRate = '100000000';
+
+    const createFlowOperation = sf.cfaV1.createFlow({
+      receiver: TradeableCashflow.address,
       superToken: daix.address,
-      account: accounts[1].address,
-      providerOrSigner: superSigner,
+      flowRate: aliceFlowRate,
     });
 
-    console.log('initial owner flow rate: ', initialOwnerFlowRate);
+    const txn = await createFlowOperation.exec(aliceAddress);
 
-    const appFlowRate = await sf.cfaV1.getNetFlow({
-      superToken: daix.address,
-      account: TradeableCashflow.address,
-      providerOrSigner: superSigner,
-    });
+    await txn.wait();
 
-    const senderFlowRate = await sf.cfaV1.getNetFlow({
-      superToken: daix.address,
-      account: accounts[0].address,
-      providerOrSigner: superSigner,
-    });
-    console.log('sender flow rate: ', senderFlowRate);
-    console.log('tcf address: ', TradeableCashflow.address);
-    console.log('app flow rate: ', appFlowRate);
+    const newAliceFlowRate = '200000000';
 
     const updateFlowOperation = sf.cfaV1.updateFlow({
       receiver: TradeableCashflow.address,
@@ -187,14 +166,9 @@ describe('sending flows', async function () {
       flowRate: '200000000',
     });
 
-    const updateFlowTxn = await updateFlowOperation.exec(accounts[0]);
+    const updateFlowTxn = await updateFlowOperation.exec(aliceAddress);
 
     await updateFlowTxn.wait();
-
-    const appFinalBalance = await daix.balanceOf({
-      account: TradeableCashflow.address,
-      providerOrSigner: superSigner,
-    });
 
     const updatedOwnerFlowRate = await sf.cfaV1.getNetFlow({
       superToken: daix.address,
@@ -202,114 +176,67 @@ describe('sending flows', async function () {
       providerOrSigner: superSigner,
     });
 
-    assert.equal(updatedOwnerFlowRate, '200000000', 'owner not receiving correct updated flowRate');
-
-    assert.equal(appFlowRate, 0, 'App flowRate not zero');
-
-    assert.equal(appInitialBalance.toString(), appFinalBalance.toString(), "balances aren't equal");
-  });
-
-  it('Case 3: Owners flow should be same after a new flow (minor than the actual) has created ', async () => {
-    const appInitialBalance = await daix.balanceOf({
-      account: TradeableCashflow.address,
-      providerOrSigner: accounts[0],
-    });
-
-    const initialOwnerFlowRate = await sf.cfaV1.getNetFlow({
+    const appFlowRate = await sf.cfaV1.getNetFlow({
       superToken: daix.address,
-      account: accounts[1].address,
+      account: TradeableCashflow.address,
       providerOrSigner: superSigner,
     });
 
-    console.log('initial owner flow rate: ', initialOwnerFlowRate);
+    assert.equal(updatedOwnerFlowRate, newAliceFlowRate, 'owner not receiving correct updated flowRate');
+
+    assert.equal(appFlowRate, 0, 'App flowRate not zero');
+  });
+
+  it('Case 3: Owners flow should be same after a new flow (minor than the actual) has created ', async () => {
+    const aliceAcct = accounts[0];
+    const jamesAcct = accounts[2];
+    const ownerAcct = accounts[1];
 
     console.log(accounts[2].address);
 
     const daixTransferOperation = daix.transfer({
-      receiver: accounts[2].address,
+      receiver: jamesAcct.address,
       amount: ethers.utils.parseEther('500'),
     });
 
-    await daixTransferOperation.exec(accounts[0]);
+    await daixTransferOperation.exec(aliceAcct);
 
     const account2Balance = await daix.balanceOf({
-      account: accounts[2].address,
+      account: jamesAcct.address,
       providerOrSigner: superSigner,
     });
+
     console.log('account 2 balance ', account2Balance);
 
-    const createFlowOperation2 = sf.cfaV1.createFlow({
+    const aliceFlowRate = '120000000';
+
+    const jamesFlowRate = '100000000';
+
+    const aliceOp = sf.cfaV1.createFlow({
       receiver: TradeableCashflow.address,
       superToken: daix.address,
-      flowRate: '100000000',
+      flowRate: aliceFlowRate,
     });
 
-    const createFlowOperation2Txn = await createFlowOperation2.exec(accounts[2]);
+    const aliceOpTx = await aliceOp.exec(aliceAcct);
 
-    await createFlowOperation2Txn.wait();
-
-    const appFlowRate = await sf.cfaV1.getNetFlow({
-      superToken: daix.address,
-      account: TradeableCashflow.address,
-      providerOrSigner: superSigner,
-    });
-
-    const appFinalBalance = await daix.balanceOf({
-      account: TradeableCashflow.address,
-      providerOrSigner: superSigner,
-    });
-
-    const updatedOwnerFlowRate2 = await sf.cfaV1.getNetFlow({
-      superToken: daix.address,
-      account: accounts[1].address,
-      providerOrSigner: superSigner,
-    });
-
-    assert.equal(initialOwnerFlowRate, updatedOwnerFlowRate2, 'owner flow is not the same as at the beginning');
-
-    assert.equal(appFlowRate, 0, 'App flowRate not zero');
-
-    assert.equal(appInitialBalance.toString(), appFinalBalance.toString(), "balances aren't equal");
-  });
-
-  it('Case 4: multiple users send flows into contract', async () => {
-    const appInitialBalance = await daix.balanceOf({
-      account: TradeableCashflow.address,
-      providerOrSigner: accounts[0],
-    });
+    await aliceOpTx.wait();
 
     const initialOwnerFlowRate = await sf.cfaV1.getNetFlow({
       superToken: daix.address,
-      account: accounts[1].address,
+      account: ownerAcct.address,
       providerOrSigner: superSigner,
     });
 
-    console.log('initial owner flow rate: ', initialOwnerFlowRate);
-
-    console.log(accounts[3].address);
-
-    const daixTransferOperation = daix.transfer({
-      receiver: accounts[3].address,
-      amount: ethers.utils.parseEther('500'),
-    });
-
-    await daixTransferOperation.exec(accounts[0]);
-
-    const account2Balance = await daix.balanceOf({
-      account: accounts[3].address,
-      providerOrSigner: superSigner,
-    });
-    console.log('account 3 balance ', account2Balance);
-
-    const createFlowOperation2 = sf.cfaV1.createFlow({
+    const jamesOp = sf.cfaV1.createFlow({
       receiver: TradeableCashflow.address,
       superToken: daix.address,
-      flowRate: '500000000',
+      flowRate: jamesFlowRate,
     });
 
-    const createFlowOperation2Txn = await createFlowOperation2.exec(accounts[3]);
+    const jamesOpTx = await jamesOp.exec(jamesAcct);
 
-    await createFlowOperation2Txn.wait();
+    await jamesOpTx.wait();
 
     const appFlowRate = await sf.cfaV1.getNetFlow({
       superToken: daix.address,
@@ -317,23 +244,76 @@ describe('sending flows', async function () {
       providerOrSigner: superSigner,
     });
 
-    const appFinalBalance = await daix.balanceOf({
+    const updatedOnwerFlowRate2 = await sf.cfaV1.getNetFlow({
+      superToken: daix.address,
+      account: ownerAcct.address,
+      providerOrSigner: superSigner,
+    });
+
+    assert.equal(initialOwnerFlowRate, updatedOnwerFlowRate2, 'owner flow is not the same as at the beginning');
+
+    assert.equal(appFlowRate, 0, 'App flowRate not zero');
+  });
+
+  it('Case 4: new flow should override existing flow if it is greater than existing flow', async () => {
+    const aliceAcct = accounts[0];
+    const jamesAcct = accounts[2];
+    const ownerAcct = accounts[1];
+
+    console.log(accounts[2].address);
+
+    const daixTransferOperation = daix.transfer({
+      receiver: jamesAcct.address,
+      amount: ethers.utils.parseEther('500'),
+    });
+
+    await daixTransferOperation.exec(aliceAcct);
+
+    const account2Balance = await daix.balanceOf({
+      account: jamesAcct.address,
+      providerOrSigner: superSigner,
+    });
+
+    console.log('account 2 balance ', account2Balance);
+
+    const aliceFlowRate = '120000000';
+
+    const jamesFlowRate = '150000000';
+
+    const aliceOp = sf.cfaV1.createFlow({
+      receiver: TradeableCashflow.address,
+      superToken: daix.address,
+      flowRate: aliceFlowRate,
+    });
+
+    const aliceOpTx = await aliceOp.exec(aliceAcct);
+
+    await aliceOpTx.wait();
+
+    const jamesOp = sf.cfaV1.createFlow({
+      receiver: TradeableCashflow.address,
+      superToken: daix.address,
+      flowRate: jamesFlowRate,
+    });
+
+    const jamesOpTx = await jamesOp.exec(jamesAcct);
+
+    await jamesOpTx.wait();
+
+    const appFlowRate = await sf.cfaV1.getNetFlow({
+      superToken: daix.address,
       account: TradeableCashflow.address,
       providerOrSigner: superSigner,
     });
 
-    const updatedOwnerFlowRate2 = await sf.cfaV1.getNetFlow({
+    const updatedOnwerFlowRate2 = await sf.cfaV1.getNetFlow({
       superToken: daix.address,
-      account: accounts[1].address,
+      account: ownerAcct.address,
       providerOrSigner: superSigner,
     });
 
-    assert.equal(updatedOwnerFlowRate2, '500000000', 'owner not receiving correct updated flowRate');
+    assert.equal(updatedOnwerFlowRate2, jamesFlowRate, 'owner flow is not the same as at the james flow rate');
 
     assert.equal(appFlowRate, 0, 'App flowRate not zero');
-
-    assert.equal(appInitialBalance.toString(), appFinalBalance.toString(), "balances aren't equal");
   });
-
-  //need deletion case
 });

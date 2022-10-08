@@ -144,7 +144,7 @@ contract BillboardFlow is SuperAppBase {
         ISuperToken /*superToken*/,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
-        bytes calldata /*agreementData*/,
+        bytes calldata agreementData,
         bytes calldata /*_ctx*/
     )
     external
@@ -154,14 +154,16 @@ contract BillboardFlow is SuperAppBase {
     returns (bytes memory newCtx)
     {
 
+        (address sender,) = abi.decode(agreementData, (address,address));
+
+
         int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
 
-        (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
+        // get incoming flow rate
+        
 
-        int96 inFlowRate = netFlowRate + outFlowRate;
+        // if incoming flow <= netFlow reject
 
-
-        //revert("error");
 
     }
 
