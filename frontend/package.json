@@ -13,6 +13,7 @@
     "@rainbow-me/rainbowkit": "^0.7.1",
     "abitype": "^0.1.4",
     "autoprefixer": "^10.4.12",
+    "ethers": "^5.7.1",
     "postcss": "^8.4.17",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
