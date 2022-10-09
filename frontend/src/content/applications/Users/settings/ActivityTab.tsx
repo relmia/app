@@ -1,15 +1,4 @@
-import {
-  Avatar,
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardHeader,
-  Divider,
-  IconButton,
-  Link,
-  Typography,
-} from '@mui/material';
+import { Box, Button, Card, CardActions, CardHeader, Divider, IconButton, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 import MoreHorizTwoToneIcon from '@mui/icons-material/MoreHorizTwoTone';
@@ -20,7 +9,7 @@ import AddModal from '../../../../components/Modal/AdModal';
 import { useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import YoutubeEmbed from '../../../../components/Video/Embed';
-import { useSuperFluid, useSuperToken } from '../../../../hooks/superfluid';
+import Balance from './Balance';
 
 const CardActionsWrapper = styled(CardActions)(
   ({ theme }) => `
@@ -29,23 +18,14 @@ const CardActionsWrapper = styled(CardActions)(
 `,
 );
 
-const TestDataPull = () => {
-  const sf = useSuperFluid();
-  const token = useSuperToken({
-    sf,
-    tokenName: 'fDaix',
-  });
-
-  return null;
-};
-
 function ActivityTab() {
   const [open, setOpen] = useState(false);
   return (
     <>
+      <Balance></Balance>
+      <Box sx={{ p: 2 }}></Box>
       <Card>
         <CardHeader
-          avatar={<Avatar src="/static/images/avatars/5.jpg" />}
           action={
             <IconButton color="primary">
               <MoreHorizTwoToneIcon fontSize="medium" />
@@ -53,24 +33,11 @@ function ActivityTab() {
           }
           titleTypographyProps={{ variant: 'h4' }}
           subheaderTypographyProps={{ variant: 'subtitle2' }}
-          title="Allison Lipshutz"
-          subheader={
-            <>
-              Managing Partner,{' '}
-              <Link href="#" underline="hover">
-                #software
-              </Link>
-              ,{' '}
-              <Link href="#" underline="hover">
-                #managers
-              </Link>
-              , Google Inc.
-            </>
-          }
         />
+
         <Box px={3} pb={2}>
           <Typography variant="h2" sx={{ pb: 1 }}>
-            Meta-verse Billboad
+            Metaverse Billboad
           </Typography>
         </Box>
         <YoutubeEmbed></YoutubeEmbed>
@@ -114,7 +81,6 @@ function ActivityTab() {
         </CardActionsWrapper>
         <AddModal setOpen={setOpen} open={open}></AddModal>
       </Card>
-      <TestDataPull />
     </>
   );
 }

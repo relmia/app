@@ -4,7 +4,7 @@ import PageHeader from './PageHeader';
 import { Container, Grid, Tab, Tabs } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-import BillboardDashboard from './BillboardDashboard';
+import ActivityTab from './ActivityTab';
 import NotificationsTab from './NotificationsTab';
 import SecurityTab from './SecurityTab';
 import PageTitleWrapper from '../../../../components/PageTitleWrapper';
@@ -57,7 +57,7 @@ function ManagementUserSettings() {
             </TabsWrapper>
           </Grid>
           <Grid item xs={12}>
-            {currentTab === 'activity' && <BillboardDashboard />}
+            {currentTab === 'activity' && <ActivityTab />}
             {currentTab === 'notifications' && <NotificationsTab />}
             {currentTab === 'security' && <SecurityTab />}
           </Grid>
