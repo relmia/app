@@ -167,8 +167,8 @@ contract BillboardFlow is SuperAppBase {
         (, int96 newAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
         // if there is a current winning bid
        (address sender,) = abi.decode(_agreementData, (address,address));
-        ISuperfluid.Context memory decompiledContext = _host.decodeCtx(_ctx);
-        (string memory newLivePeerId) = abi.decode(decompiledContext.userData, (string));
+        // ISuperfluid.Context memory decompiledContext = _host.decodeCtx(_ctx);
+        // (string memory newLivePeerId) = abi.decode(decompiledContext.userData, (string));
 
 
         if (_winningBid.flow > 0)  {
@@ -181,12 +181,12 @@ contract BillboardFlow is SuperAppBase {
             _updateCurrentWinningBid(sender, newAgreementFlowRate);
             newCtx = cfaV1Lib.updateFlowWithCtx(newCtx, _receiver, _acceptedToken, newAgreementFlowRate);
 
-            _activeStreamLivePeerId = newLivePeerId;
+            _activeStreamLivePeerId = "12f9l6ghp0ux7ru0";
 
             return newCtx;
         } 
 
-         _activeStreamLivePeerId = newLivePeerId;
+         _activeStreamLivePeerId = "12f9l6ghp0ux7ru0";
         _updateCurrentWinningBid(sender, newAgreementFlowRate);
         return cfaV1Lib.createFlowWithCtx(newCtx, _receiver, _acceptedToken, newAgreementFlowRate);
     }

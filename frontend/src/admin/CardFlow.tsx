@@ -25,6 +25,7 @@ import {
   useSuperFluid,
 } from '../hooks/superfluid';
 import AddModal from '../components/Modal/AdModal';
+import CreateFlowTest from '../components/CreateFlowTest';
 
 const AvatarAddWrapper = styled(Avatar)(
   ({ theme }) => `
@@ -122,91 +123,97 @@ function AdFlow() {
 
   return (
     <>
-    <Card>
-      <Box p={3}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={4}>
-            <CardCc sx={{ px: 2, pt: 2, pb: 1 }}>
-              <Box display="flex" alignItems="center">
-                <Box>
-                  <Typography variant="h3" fontWeight="normal">
-                    {activeStream && <>{toFlowPerMinute(-activeStream.netFlow)} --></>}
-                    {!activeStream && <>No active stream</>}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    <Typography component="span" color="text.primary">
-                      active ad creator: {activeStream?.sender}
+      <Card>
+        <Box p={3}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={4}>
+              <CardCc sx={{ px: 2, pt: 2, pb: 1 }}>
+                <Box display="flex" alignItems="center">
+                  <Box>
+                    <Typography variant="h3" fontWeight="normal">
+                      {activeStream && <>{`${toFlowPerMinute(-activeStream.netFlow)}} -->`}</>}
+                      {!activeStream && <>No active stream</>}
                     </Typography>
-                  </Typography>
+                    <Typography variant="subtitle2">
+                      <Typography component="span" color="text.primary">
+                        active ad creator: {activeStream?.sender}
+                      </Typography>
+                    </Typography>
+                  </Box>
                 </Box>
-              </Box>
-              <Box pt={3} display="flex" alignItems="center" justifyContent="space-between">
-                {youAreActiveBidder && (
-                  <>
-                    <Tooltip arrow title="Stop your ad">
-                      <IconButtonError onClick={() => handleDelete()}>
-                        <DeleteTwoToneIcon fontSize="small" />
-                      </IconButtonError>
-                    </Tooltip>
-                  </>
-                )}
-              {!youAreActiveBidder && !receiverResult?.youAreReceiver && (
+                <Box pt={3} display="flex" alignItems="center" justifyContent="space-between">
+                  {youAreActiveBidder && (
                     <>
-                    <Button variant={'text'} sx={{ background: '#FAFDFF' }} onClick={(e) => {e.preventDefault(); setPlaceBidOpen(true)}}>
-              <Typography fontSize={13}>{`Place an Ad`}</Typography>
-            </Button>
-                  </>
-              )}
-              </Box>
-            </CardCc>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <CardCc sx={{ px: 2, pt: 2, pb: 1 }}>
-              <FlatPagePlayer />
-            </CardCc>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <CardCc sx={{ px: 2, pt: 2, pb: 1 }}>
-              <Box display="flex" alignItems="center">
-                <Box>
-                  <Typography variant="h3" fontWeight="normal">
-                    {receiverResult && <>{`--> ${toFlowPerMinute(receiverResult.flowRate)}`}</>}
-                    {!receiverResult && 'loading...'}
-                  </Typography>
-                  <Typography variant="subtitle2">
-                    <Typography component="span" color="text.primary">
-                      {receiverResult && `Owner: ${receiverResult.receiver}`}
-                    </Typography>
-                  </Typography>
+                      <Tooltip arrow title="Stop your ad">
+                        <IconButtonError onClick={() => handleDelete()}>
+                          <DeleteTwoToneIcon fontSize="small" />
+                        </IconButtonError>
+                      </Tooltip>
+                    </>
+                  )}
+                  {!youAreActiveBidder && !receiverResult?.youAreReceiver && (
+                    <>
+                      <Button
+                        variant={'text'}
+                        sx={{ background: '#FAFDFF' }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPlaceBidOpen(true);
+                        }}
+                      >
+                        <Typography fontSize={13}>{`Place an Ad`}</Typography>
+                      </Button>
+                    </>
+                  )}
                 </Box>
-              </Box>
-              <Box pt={3} display="flex" alignItems="center" justifyContent="space-between">
-                {receiverResult?.youAreReceiver && 'You are the owner of this billboard NFT'}
-              </Box>
-            </CardCc>
+              </CardCc>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <CardCc sx={{ px: 2, pt: 2, pb: 1 }}>
+                <FlatPagePlayer />
+              </CardCc>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <CardCc sx={{ px: 2, pt: 2, pb: 1 }}>
+                <Box display="flex" alignItems="center">
+                  <Box>
+                    <Typography variant="h3" fontWeight="normal">
+                      {receiverResult && <>{`--> ${toFlowPerMinute(receiverResult.flowRate)}`}</>}
+                      {!receiverResult && 'loading...'}
+                    </Typography>
+                    <Typography variant="subtitle2">
+                      <Typography component="span" color="text.primary">
+                        {receiverResult && `Owner: ${receiverResult.receiver}`}
+                      </Typography>
+                    </Typography>
+                  </Box>
+                </Box>
+                <Box pt={3} display="flex" alignItems="center" justifyContent="space-between">
+                  {receiverResult?.youAreReceiver && 'You are the owner of this billboard NFT'}
+                </Box>
+              </CardCc>
+            </Grid>
           </Grid>
-        </Grid>
-        <Grid container spacing={3} sx={{ mt: 0.01 }}>
-          <Grid item xs={12} sm={4}></Grid>
-          <Grid item xs={12} sm={2}>
-            
+          <Grid container spacing={3} sx={{ mt: 0.01 }}>
+            <Grid item xs={12} sm={4}></Grid>
+            <Grid item xs={12} sm={2}></Grid>
+            <Grid item xs={12} sm={2}>
+              <Button
+                startIcon={<OpenSeaIcon size={44}></OpenSeaIcon>}
+                variant={'text'}
+                sx={{ background: '#FAFDFF' }}
+                onClick={viewOnOpenSea}
+              >
+                <Typography fontSize={13}>{`Buy on Open Sea`}</Typography>
+              </Button>
+            </Grid>
+            <Grid item xs={12} sm={4}></Grid>
           </Grid>
-          <Grid item xs={12} sm={2}>
-            <Button
-              startIcon={<OpenSeaIcon size={44}></OpenSeaIcon>}
-              variant={'text'}
-              sx={{ background: '#FAFDFF' }}
-              onClick={viewOnOpenSea}
-            >
-              <Typography fontSize={13}>{`Buy on Open Sea`}</Typography>
-            </Button>
-          </Grid>
-          <Grid item xs={12} sm={4}></Grid>
-        </Grid>
-      </Box>
-    </Card>
-        <AddModal setOpen={setPlaceBidOpen} open={placeBidOPen}></AddModal>
-  </>
+        </Box>
+      </Card>
+      <AddModal setOpen={setPlaceBidOpen} open={placeBidOPen}></AddModal>
+      <CreateFlowTest />
+    </>
   );
 }
 

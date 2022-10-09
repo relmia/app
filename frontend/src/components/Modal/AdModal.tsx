@@ -9,7 +9,7 @@ import useTokenContractAddressAndAbi from '../../hooks/useTokenContractAddressAn
 import { Alert } from '../Alert/Alert';
 import { defaultAbiCoder } from '@ethersproject/abi';
 
-function encodeLivePeerIdUserData(livePeerId: string) {
+export function encodeLivePeerIdUserData(livePeerId: string) {
   return defaultAbiCoder.encode(['string'], [livePeerId]);
 }
 
