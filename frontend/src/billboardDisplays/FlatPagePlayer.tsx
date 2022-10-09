@@ -1,6 +1,6 @@
 import { useActiveLivePeerStreamId } from '../hooks/superfluid';
 import { Player, createReactClient, studioProvider } from '@livepeer/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { HLSVideo } from './HlsVideo';
 
 const PosterImage = () => {
@@ -24,11 +24,15 @@ const FlatPagePlayer = () => {
     setLivePeerInitialized(true);
   }, []);
 
-  if (!livePeerPlaybackId || !livePeerClientInitialized) return <PosterImage />;
+  const livePeerUrl = useMemo(() => {
+    if (!livePeerPlaybackId) return null;
 
-  // return Livepeer({ playbackId: livePeerPlaybackId });
+    return `https://livepeercdn.com/hls/${livePeerPlaybackId}/index.m3u8`;
+  }, [livePeerPlaybackId]);
 
-  return <HLSVideo src={`https://livepeercdn.com/hls/${livePeerPlaybackId}/index.m3u8`} autoPlay muted />;
+  if (!livePeerUrl || !livePeerClientInitialized) return <PosterImage />;
+
+  return <HLSVideo src={livePeerUrl} autoPlay muted />;
 };
 
 export default FlatPagePlayer;

@@ -56,7 +56,10 @@ export const useActiveLivePeerStreamId = () => {
     watch: true,
   });
 
-  const result = data?.[0] as string;
+  // @ts-ignore
+  const result = data as string;
+
+  // console.log({ livePeerId: result, data });
 
   // if empty string, then assume not set and return null
   if (result === '') return null;
