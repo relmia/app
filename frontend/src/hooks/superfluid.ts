@@ -59,8 +59,6 @@ export const useActiveLivePeerStreamId = () => {
   // @ts-ignore
   const result = data as string;
 
-  // console.log({ livePeerId: result, data });
-
   // if empty string, then assume not set and return null
   if (result === '') return null;
 
@@ -87,8 +85,6 @@ export const useContractReceiver = () => {
   const youAreReceiver = receiver.toLowerCase() === address?.toLowerCase();
 
   const flowRate = 100;
-
-  console.log('read result', readResult);
 
   return {
     receiver,
@@ -128,8 +124,6 @@ export const useContractStreams = (pollInterval = 5000) => {
 
           const netFlow = -+x.currentFlowRate + +(outputStreamForInput?.currentFlowRate || 0);
 
-          console.log(+x.currentFlowRate, +(outputStreamForInput?.currentFlowRate || 0));
-
           return {
             ...x,
             netFlow,
@@ -137,8 +131,6 @@ export const useContractStreams = (pollInterval = 5000) => {
         })
 
         .sort((x) => x.netFlow);
-
-      console.log(netInputStreams);
 
       const activeStream = netInputStreams.filter((x) => x.netFlow < 0)[0];
 
