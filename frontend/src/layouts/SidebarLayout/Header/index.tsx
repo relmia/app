@@ -1,11 +1,4 @@
-import { useContext } from 'react';
-
-import { alpha, Box, Divider, IconButton, lighten, Stack, styled, Tooltip, useTheme } from '@mui/material';
-import MenuTwoToneIcon from '@mui/icons-material/MenuTwoTone';
-import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
-
-import HeaderButtons from './Buttons';
-import HeaderMenu from './Menu';
+import { alpha, Avatar, Box, Divider, lighten, Stack, styled, useTheme } from '@mui/material';
 // import { SidebarContext } from '../../../contexts/SidebarContext';
 import Web3Login from '../../../web3/Web3Login';
 
@@ -32,6 +25,10 @@ function Header() {
   // const { sidebarToggle, toggleSidebar } = useContext(SidebarContext);
   const theme = useTheme();
 
+  const LogoApp = () => (
+    <Avatar variant={'square'} alt="Relmia" src="/static/images/logo.png" sx={{ width: 250, height: 70, ml: 10 }} />
+  );
+
   return (
     <HeaderWrapper
       display="flex"
@@ -50,7 +47,7 @@ function Header() {
       }}
     >
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem />} alignItems="center" spacing={2}>
-        {/* <HeaderMenu /> */}
+        <LogoApp></LogoApp>
       </Stack>
       <Box display="flex" alignItems="center">
         {/* <HeaderButtons /> */}
