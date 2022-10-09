@@ -7,8 +7,8 @@ import { styled } from '@mui/material/styles';
 import BillboardDashboard from './BillboardDashboard';
 import NotificationsTab from './NotificationsTab';
 import SecurityTab from './SecurityTab';
-import PageTitleWrapper from '../../../../components/PageTitleWrapper';
-import Footer from '../../../../components/Footer';
+import PageTitleWrapper from '../components/PageTitleWrapper';
+import Footer from '../components/Footer';
 
 const TabsWrapper = styled(Tabs)(
   () => `
@@ -35,7 +35,7 @@ function ManagementUserSettings() {
   return (
     <>
       <Helmet>
-        <title>User Settings - Applications</title>
+        <title>Decentralized Billboard Auction</title>
       </Helmet>
       <PageTitleWrapper>
         <PageHeader />

@@ -6,7 +6,7 @@ import CloseTwoToneIcon from '@mui/icons-material/CloseTwoTone';
 
 import HeaderButtons from './Buttons';
 import HeaderMenu from './Menu';
-import { SidebarContext } from '../../../contexts/SidebarContext';
+// import { SidebarContext } from '../../../contexts/SidebarContext';
 import Web3Login from '../../../web3/Web3Login';
 
 const HeaderWrapper = styled(Box)(
@@ -29,7 +29,7 @@ const HeaderWrapper = styled(Box)(
 );
 
 function Header() {
-  const { sidebarToggle, toggleSidebar } = useContext(SidebarContext);
+  // const { sidebarToggle, toggleSidebar } = useContext(SidebarContext);
   const theme = useTheme();
 
   return (
@@ -50,10 +50,10 @@ function Header() {
       }}
     >
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem />} alignItems="center" spacing={2}>
-        <HeaderMenu />
+        {/* <HeaderMenu /> */}
       </Stack>
       <Box display="flex" alignItems="center">
-        <HeaderButtons />
+        {/* <HeaderButtons /> */}
         <Web3Login />
         <Box
           component="span"
@@ -62,11 +62,11 @@ function Header() {
             display: { lg: 'none', xs: 'inline-block' },
           }}
         >
-          <Tooltip arrow title="Toggle Menu">
+          {/* <Tooltip arrow title="Toggle Menu">
             <IconButton color="primary" onClick={toggleSidebar}>
               {!sidebarToggle ? <MenuTwoToneIcon fontSize="small" /> : <CloseTwoToneIcon fontSize="small" />}
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
         </Box>
       </Box>
     </HeaderWrapper>
