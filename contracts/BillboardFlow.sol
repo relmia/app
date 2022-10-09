@@ -30,9 +30,8 @@ bytes32 constant CFA_ID = keccak256("org.superfluid-finance.agreements.ConstantF
     error InvalidAgreement();
 
 struct WinningBid { 
-   bool set;
    address sender;
-   int256 flow;
+   int96 flow;
 }
 
 /// @title Stream Redirection Contract
@@ -67,7 +66,7 @@ contract BillboardFlow is SuperAppBase {
         _receiver = receiver;
         _host = host;
 
-        _winningBid.set = false;
+        _winningBid.flow = 0;
 
         cfaV1Lib = CFAv1Library.InitData({
         host : host,
@@ -133,10 +132,12 @@ contract BillboardFlow is SuperAppBase {
         }
     }
 
-    function _updateCurrentWinningBid(address sender, int256 _winningBidFlow) internal {
-        _winningBid.set = true;
+    function _updateCurrentWinningBid(address sender, int96 _winningBidFlow) internal {
         _winningBid.sender = sender;
         _winningBid.flow = _winningBidFlow;
+    
+        console.log("updated winning bid");
+        console.logInt(_winningBid.flow);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -156,25 +157,30 @@ contract BillboardFlow is SuperAppBase {
     onlyHost
     returns (bytes memory newCtx)
     {
+        newCtx = _ctx;
         // get the newly created flow's rate
-        (, int256 newAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
+        (, int96 newAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
         // if there is a current winning bid
-        if (_winningBid.set)  {
+       (address sender,) = abi.decode(_agreementData, (address,address));
+        if (_winningBid.flow > 0)  {
             // if the new flow rate is less than the current bid flow rate reject it
             if (newAgreementFlowRate <= _winningBid.flow) {
                 revert("New flow rate is lass than current winning flow rate");
-            } else {
-                address from = _winningBid.sender;
-                address to = address(this);
-                // bytes newCtx = _ctx;
-                
-                cfaV1Lib.deleteFlowWithCtx(_ctx, from, to, _superToken);
-            }
-        }
+            } 
+             
+            // console.log("NEW FLOW RATE");
+            console.logInt(newAgreementFlowRate);
+            console.log(_winningBid.sender);
+            newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx, _winningBid.sender, address(this), _acceptedToken);
+            _updateCurrentWinningBid(sender, newAgreementFlowRate);
+            newCtx = cfaV1Lib.updateFlowWithCtx(newCtx, _receiver, _acceptedToken, newAgreementFlowRate);
+            int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
+            console.logInt(netFlowRate);
+            return newCtx;
+        } 
 
-        (address sender,) = abi.decode(_agreementData, (address,address));
         _updateCurrentWinningBid(sender, newAgreementFlowRate);
-        return _updateOutflow(_ctx);
+        return cfaV1Lib.createFlowWithCtx(newCtx, _receiver, _acceptedToken, newAgreementFlowRate);
     }
 
     function afterAgreementUpdated(
@@ -191,28 +197,37 @@ contract BillboardFlow is SuperAppBase {
     onlyHost
     returns (bytes memory newCtx)
     {
-        (, int256 updatedAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
+        (, int96 updatedAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
         (address sender,) = abi.decode(_agreementData, (address,address));
 
         _updateCurrentWinningBid(sender, updatedAgreementFlowRate);
 
-        return _updateOutflow(_ctx);
+        return cfaV1Lib.updateFlowWithCtx(_ctx, _receiver, _acceptedToken, updatedAgreementFlowRate);
     }
 
     function afterAgreementTerminated(
         ISuperToken _superToken,
         address _agreementClass,
         bytes32, // _agreementId,
-        bytes calldata, // _agreementData
+        bytes calldata _agreementData,
         bytes calldata, // _cbdata,
         bytes calldata _ctx
     ) external override onlyHost returns (bytes memory newCtx) {
         // According to the app basic law, we should never revert in a termination callback
+        console.log("TERMINATED FN");
         if (_superToken != _acceptedToken || _agreementClass != address(cfaV1Lib.cfa)) {
             return _ctx;
         }
 
-        return _updateOutflow(_ctx);
+        (address sender,) = abi.decode(_agreementData, (address,address));
+
+        if (sender == _winningBid.sender) {
+            // set as if there is no winning bid if the one deleted is the current winning bid.
+            console.log("CLEARING FLOW");
+            _winningBid.flow = 0;
+        }
+
+        return cfaV1Lib.deleteFlowWithCtx(_ctx, address(this), _receiver, _acceptedToken);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -248,24 +263,32 @@ contract BillboardFlow is SuperAppBase {
     /// net flow rate.
     /// @param ctx The context byte array from the Host's calldata.
     /// @return newCtx The new context byte array to be returned to the Host.
-    function _updateOutflow(bytes calldata ctx) private returns (bytes memory newCtx) {
-        newCtx = ctx;
+    // function _updateOutflow(bytes memory ctx) private returns (bytes memory newCtx) {
+    //     console.log("CALL UPDTATE OUTFLOW");
+    //     newCtx = ctx;
 
-        int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
+    //     (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
 
-        (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
+    //     console.log("got da flow");
 
-        int96 inFlowRate = netFlowRate + outFlowRate;
+    //     if (_winningBid.flow == 0 && outFlowRate != 0) {
+    //         console.log("DELETE OUT");
+    //         newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx, address(this), _receiver, _acceptedToken);
+    //     } else if (outFlowRate != 0) {
+    //         console.log("UPDATE OUT");
+    //         console.logInt(_winningBid.flow);
+    //         newCtx = cfaV1Lib.updateFlowWithCtx(newCtx, _receiver, _acceptedToken, _winningBid.flow);
+            
 
-        if (inFlowRate == 0) {
-            // The flow does exist and should be deleted.
-            newCtx = cfaV1Lib.deleteFlowWithCtx(ctx, address(this), _receiver, _acceptedToken);
-        } else if (outFlowRate != 0) {
-            // The flow does exist and needs to be updated.
-            newCtx = cfaV1Lib.updateFlowWithCtx(ctx, _receiver, _acceptedToken, inFlowRate);
-        } else {
-            // The flow does not exist but should be created.
-            newCtx = cfaV1Lib.createFlowWithCtx(ctx, _receiver, _acceptedToken, inFlowRate);
-        }
-    }
+    //         (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
+    //         console.log("UPDTATED OUT");
+    //         console.logInt(outFlowRate);
+    //         // newCtx = cfaV1Lib.updateFlowWithCtx(newCtx, _receiver, _acceptedToken, );
+    //     } else {
+    //         // The flow does not exist but should be created.
+    //         console.log("CREATE OUT");
+    //         newCtx = cfaV1Lib.createFlowWithCtx(newCtx, _receiver, _acceptedToken, _winningBid.flow);
+
+    //     }
+    // }
 }
