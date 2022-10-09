@@ -10,6 +10,8 @@ import { useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import YoutubeEmbed from '../../../../components/Video/Embed';
 import Balance from './Balance';
+import { useSuperFluid, useSuperToken } from '../../../../hooks/superfluid';
+import { DEFAULT_TOKEN_NAME } from '../../../../utils/constants';
 
 const CardActionsWrapper = styled(CardActions)(
   ({ theme }) => `
@@ -20,6 +22,9 @@ const CardActionsWrapper = styled(CardActions)(
 
 function ActivityTab() {
   const [open, setOpen] = useState(false);
+  const sf = useSuperFluid();
+  const token = useSuperToken({ sf, tokenName: DEFAULT_TOKEN_NAME });
+
   return (
     <>
       <Balance></Balance>

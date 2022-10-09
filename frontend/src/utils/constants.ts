@@ -8,5 +8,3 @@ export const enum LOCALHOST {
 }
 
 export const DEFAULT_TOKEN_NAME = 'fDAIx';
-
-export const BILLBOARD_CONTRACT_ADDRESS = '0xaFE3A6dFA716D082B7b69E7EA7290c94fd34dD05';
