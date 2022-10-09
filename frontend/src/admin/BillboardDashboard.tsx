@@ -4,11 +4,11 @@ import { styled } from '@mui/material/styles';
 import MoreHorizTwoToneIcon from '@mui/icons-material/MoreHorizTwoTone';
 import CommentTwoToneIcon from '@mui/icons-material/CommentTwoTone';
 import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
-import Text from '../../../../components/Text';
-import AddModal from '../../../../components/Modal/AdModal';
+import Text from '../components/Text';
+import AddModal from '../components/Modal/AdModal';
 import { useContext, useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
-import YoutubeEmbed from '../../../../components/Video/Embed';
+import YoutubeEmbed from '../components/Video/Embed';
 import Balance from './Balance';
 import {
   SuperfluidContext,
@@ -16,9 +16,9 @@ import {
   useContractStreams,
   useSuperFluid,
   useSuperToken,
-} from '../../../../hooks/superfluid';
-import { DEFAULT_TOKEN_NAME } from '../../../../utils/constants';
-import useTokenContractAddressAndAbi from '../../../../hooks/useTokenContractAddressAndAbi';
+} from '../hooks/superfluid';
+import { DEFAULT_TOKEN_NAME } from '../utils/constants';
+import useTokenContractAddressAndAbi from '../hooks/useTokenContractAddressAndAbi';
 import { useAccount } from 'wagmi';
 
 const CardActionsWrapper = styled(CardActions)(

@@ -15,23 +15,19 @@ const Loader = (Component) => (props) =>
 
 // Applications
 
-const UserSettings = Loader(lazy(() => import('../src/content/applications/Users/settings')));
+const Admin = Loader(lazy(() => import('../src/admin')));
 
 const routes: RouteObject[] = [
   {
     path: '',
-    element: <Navigate to="management/profile/settings" replace />,
-  },
-  {
-    path: 'management',
     element: <SidebarLayout />,
     children: [
       {
-        path: 'profile',
+        path: '',
         children: [
           {
-            path: 'settings',
-            element: <UserSettings />,
+            path: '',
+            element: <Admin />,
           },
         ],
       },
