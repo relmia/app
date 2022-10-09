@@ -58,6 +58,7 @@ export const useActiveLivePeerStreamId = () => {
     watch: true,
   });
 
+  console.log('datga', data);
   const result = data?.[0] as string;
 
   // if empty string, then assume not set and return null

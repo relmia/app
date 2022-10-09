@@ -4,7 +4,7 @@ import { useAccount } from 'wagmi';
 import localHostAddress from '../contracts/localhost/contract-address.json';
 import goerliHostAddress from '../contracts/goerli/contract-address.json';
 import mumbaiHostAddress from '../contracts/mumbai/contract-address.json';
-import contractAbi from '../contracts/localhost/TradeableCashflow.json';
+import contractAbi from '../contracts/mumbai/TradeableCashflow.json';
 import { ContractInterface } from 'ethers';
 
 export type GetContractArgs = {

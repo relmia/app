@@ -20,6 +20,7 @@ import {
 import { DEFAULT_TOKEN_NAME } from '../utils/constants';
 import useTokenContractAddressAndAbi from '../hooks/useTokenContractAddressAndAbi';
 import { useAccount } from 'wagmi';
+import FlatPagePlayer from '../billboardDisplays/FlatPagePlayer';
 
 const CardActionsWrapper = styled(CardActions)(
   ({ theme }) => `
@@ -75,6 +76,7 @@ function BillboardDashboard() {
   return (
     <>
       <InfoDebug />
+      <FlatPagePlayer />
       <Balance></Balance>
       <Box sx={{ p: 2 }}></Box>
       <Card>
