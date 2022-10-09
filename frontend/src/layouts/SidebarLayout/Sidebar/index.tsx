@@ -6,7 +6,7 @@ import { alpha, Avatar, Box, darken, Divider, Drawer, lighten, styled, useTheme 
 
 import SidebarMenu from './SidebarMenu';
 
-const LogoApp = () => <Avatar alt="Relmia" src="/static/images/logo.png" sx={{ width: 100, height: 100, ml: 10 }} />;
+const LogoApp = () => <Avatar alt="Relmia" src="https://ibb.co/7r5C4S5" sx={{ width: 100, height: 100, ml: 10 }} />;
 
 const SidebarWrapper = styled(Box)(
   ({ theme }) => `
