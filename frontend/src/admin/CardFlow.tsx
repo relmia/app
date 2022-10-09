@@ -178,7 +178,7 @@ function AdFlow() {
                 <Box display="flex" alignItems="center">
                   <Box>
                     <Typography variant="h3" fontWeight="normal">
-                      {receiverResult && <>{`--> ${toFlowPerMinute(receiverResult.flowRate)}`}</>}
+                      {activeStream?.netFlow && <>{`--> ${toFlowPerMinute(-activeStream.netFlow)}`}</>}
                       {!receiverResult && 'loading...'}
                     </Typography>
                     <Typography variant="subtitle2">
