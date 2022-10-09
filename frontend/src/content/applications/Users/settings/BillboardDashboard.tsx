@@ -10,8 +10,9 @@ import { useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import YoutubeEmbed from '../../../../components/Video/Embed';
 import Balance from './Balance';
-import { useSuperFluid, useSuperToken } from '../../../../hooks/superfluid';
+import { SuperfluidContext, useSuperFluid, useSuperToken } from '../../../../hooks/superfluid';
 import { DEFAULT_TOKEN_NAME } from '../../../../utils/constants';
+import useTokenContractAddressAndAbi from '../../../../hooks/useTokenContractAddressAndAbi';
 
 const CardActionsWrapper = styled(CardActions)(
   ({ theme }) => `
@@ -20,13 +21,16 @@ const CardActionsWrapper = styled(CardActions)(
 `,
 );
 
+const InfoDebug = () => {
+  return null;
+};
+
 function BillboardDashboard() {
   const [open, setOpen] = useState(false);
-  const sf = useSuperFluid();
-  const token = useSuperToken({ sf, tokenName: DEFAULT_TOKEN_NAME });
 
   return (
     <>
+      <InfoDebug />
       <Balance></Balance>
       <Box sx={{ p: 2 }}></Box>
       <Card>
@@ -90,4 +94,25 @@ function BillboardDashboard() {
   );
 }
 
-export default BillboardDashboard;
+function BillboardDashboardWrapper() {
+  const sf = useSuperFluid();
+  const superToken = useSuperToken({ sf, tokenName: DEFAULT_TOKEN_NAME });
+
+  const contractAddress = useTokenContractAddressAndAbi();
+
+  if (!sf || !superToken || !contractAddress) return null;
+
+  return (
+    <SuperfluidContext.Provider
+      value={{
+        sf,
+        superToken,
+        contractAddress: contractAddress.addressOrName,
+      }}
+    >
+      <BillboardDashboard></BillboardDashboard>
+    </SuperfluidContext.Provider>
+  );
+}
+
+export default BillboardDashboardWrapper;

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import { useNetwork, useProvider } from 'wagmi';
 import { Framework } from '@superfluid-finance/sdk-core';
 import { MUMBAI } from '../utils/constants';
 import SuperToken from '@superfluid-finance/sdk-core/dist/module/SuperToken';
+import { Contract } from 'ethers';
 
 export const useSuperFluid = () => {
   const { chain } = useNetwork();
@@ -47,3 +48,11 @@ export const useSuperToken = ({ sf, tokenName }: { sf: Framework | undefined; to
 };
 
 export const useCurrentBidInfo = ({ sf, token }: { sf: Framework | undefined; token: SuperToken | undefined }) => {};
+
+export type SuperfluidContextType = {
+  sf: Framework;
+  superToken: SuperToken;
+  contractAddress: string;
+};
+
+export const SuperfluidContext = createContext<SuperfluidContextType | null>(null);
