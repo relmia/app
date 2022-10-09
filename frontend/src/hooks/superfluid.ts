@@ -4,7 +4,7 @@ import { Framework, IStream, PagedResult } from '@superfluid-finance/sdk-core';
 import { DEFAULT_TOKEN_NAME, MUMBAI } from '../utils/constants';
 import SuperToken from '@superfluid-finance/sdk-core/dist/module/SuperToken';
 import { BigNumber, Contract, ContractInterface } from 'ethers';
-import { formatEther } from 'ethers/lib/utils';
+import { formatEther, isAddress } from 'ethers/lib/utils';
 
 export const useSuperFluid = () => {
   const { chain } = useNetwork();
@@ -66,21 +66,33 @@ export const useActiveLivePeerStreamId = () => {
   return result;
 };
 
+export const tokenId = 1;
+const argsForOnwerOf = [tokenId];
 export const useContractReceiver = () => {
   const { sf, contractAddress, contractAbi } = useContext(SuperfluidContext);
+  const { address } = useAccount();
   const { data: readResult } = useContractRead({
     addressOrName: contractAddress,
     contractInterface: contractAbi,
-    functionName: 'currentReceiver',
-  }); //as [[number, string, string] | undefined;
+    functionName: 'ownerOf',
+    args: argsForOnwerOf,
+  });
 
   if (!readResult) return undefined;
 
-  const [startTime, receiver, flowRate] = readResult as [number, string, number];
+  // @ts-ignore
+  const receiver = readResult as string;
+
+  const youAreReceiver = receiver.toLowerCase() === address?.toLowerCase();
+
+  const flowRate = 100;
+
+  console.log('read result', readResult);
 
   return {
     receiver,
     flowRate,
+    youAreReceiver,
   };
 };
 
@@ -163,7 +175,7 @@ export function toFlowPerMinuteAmount(amount: number) {
 export function toFlowPerMinute(amount: number) {
   const value = toFlowPerMinuteAmount(amount);
 
-  return `${amount} ${DEFAULT_TOKEN_NAME}/minute`;
+  return `${amount} ${DEFAULT_TOKEN_NAME} / min`;
 }
 
 export type SuperfluidContextType = {

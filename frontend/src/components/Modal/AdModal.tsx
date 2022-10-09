@@ -29,7 +29,6 @@ const AddModal = ({ setOpen, open }: { setOpen: (open: boolean) => void; open: b
 
     try {
       setTxOnGoing(true);
-      console.log({ flowRate, livePeerId });
       const params: ICreateFlowParams = {
         receiver: contractAddress,
         superToken: superToken.address,

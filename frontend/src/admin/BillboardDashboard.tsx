@@ -59,8 +59,6 @@ const InfoDebug = () => {
 };
 
 function BillboardDashboard() {
-  const [open, setOpen] = useState(false);
-
   return (
     <>
       <CardFlow></CardFlow>
@@ -78,7 +76,6 @@ function BillboardDashboard() {
         />
 
         <Divider />
-        <AddModal setOpen={setOpen} open={open}></AddModal>
       </Card>
     </>
   );

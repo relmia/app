@@ -24,6 +24,7 @@ import {
   useContractStreams,
   useSuperFluid,
 } from '../hooks/superfluid';
+import AddModal from '../components/Modal/AdModal';
 
 const AvatarAddWrapper = styled(Avatar)(
   ({ theme }) => `
@@ -88,7 +89,7 @@ const CardCc = styled(Card)(
 `,
 );
 
-const BillboardToken = '0';
+const BillboardToken = '1';
 
 function AdFlow() {
   const data = {
@@ -108,16 +109,19 @@ function AdFlow() {
   const { contractAddress } = useContext(SuperfluidContext);
 
   const viewOnOpenSea = useCallback(() => {
-    const openSeaUrl = `https://testnets.opensea.io/assets/goerli/mumbai/${contractAddress}/${BillboardToken}`;
+    const openSeaUrl = `https://testnets.opensea.io/assets/mumbai/${contractAddress}/${BillboardToken}`;
 
     window.location.href = openSeaUrl;
   }, [contractAddress]);
+
+  const [placeBidOPen, setPlaceBidOpen] = useState(false);
 
   const handleDelete = () => {};
 
   if (!allStreams) return <p>loading...</p>;
 
   return (
+    <>
     <Card>
       <Box p={3}>
         <Grid container spacing={3}>
@@ -126,23 +130,33 @@ function AdFlow() {
               <Box display="flex" alignItems="center">
                 <Box>
                   <Typography variant="h3" fontWeight="normal">
-                    {activeStream && <>flowRate: {toFlowPerMinute(activeStream.netFlow)}</>}
+                    {activeStream && <>{toFlowPerMinute(-activeStream.netFlow)} --></>}
                     {!activeStream && <>No active stream</>}
                   </Typography>
                   <Typography variant="subtitle2">
-                    {` xDai / min: `}
                     <Typography component="span" color="text.primary">
-                      {activeStream?.sender}
+                      active ad creator: {activeStream?.sender}
                     </Typography>
                   </Typography>
                 </Box>
               </Box>
               <Box pt={3} display="flex" alignItems="center" justifyContent="space-between">
-                <Tooltip arrow title="Remove this card">
-                  <IconButtonError onClick={() => handleDelete()}>
-                    <DeleteTwoToneIcon fontSize="small" />
-                  </IconButtonError>
-                </Tooltip>
+                {youAreActiveBidder && (
+                  <>
+                    <Tooltip arrow title="Stop your ad">
+                      <IconButtonError onClick={() => handleDelete()}>
+                        <DeleteTwoToneIcon fontSize="small" />
+                      </IconButtonError>
+                    </Tooltip>
+                  </>
+                )}
+              {!youAreActiveBidder && !receiverResult?.youAreReceiver && (
+                    <>
+                    <Button variant={'text'} sx={{ background: '#FAFDFF' }} onClick={(e) => {e.preventDefault(); setPlaceBidOpen(true)}}>
+              <Typography fontSize={13}>{`Place an Ad`}</Typography>
+            </Button>
+                  </>
+              )}
               </Box>
             </CardCc>
           </Grid>
@@ -156,22 +170,18 @@ function AdFlow() {
               <Box display="flex" alignItems="center">
                 <Box>
                   <Typography variant="h3" fontWeight="normal">
-                    46342923292992
+                    {receiverResult && <>{`--> ${toFlowPerMinute(receiverResult.flowRate)}`}</>}
+                    {!receiverResult && 'loading...'}
                   </Typography>
                   <Typography variant="subtitle2">
-                    {` xDai / seg: `}
                     <Typography component="span" color="text.primary">
-                      200
+                      {receiverResult && `Owner: ${receiverResult.receiver}`}
                     </Typography>
                   </Typography>
                 </Box>
               </Box>
               <Box pt={3} display="flex" alignItems="center" justifyContent="space-between">
-                <Tooltip arrow title="Remove this card">
-                  <IconButtonError onClick={() => handleDelete()}>
-                    <DeleteTwoToneIcon fontSize="small" />
-                  </IconButtonError>
-                </Tooltip>
+                {receiverResult?.youAreReceiver && 'You are the owner of this billboard NFT'}
               </Box>
             </CardCc>
           </Grid>
@@ -179,9 +189,7 @@ function AdFlow() {
         <Grid container spacing={3} sx={{ mt: 0.01 }}>
           <Grid item xs={12} sm={4}></Grid>
           <Grid item xs={12} sm={2}>
-            <Button variant={'text'} sx={{ background: '#FAFDFF' }}>
-              <Typography fontSize={13}>{`Place an Ad`}</Typography>
-            </Button>
+            
           </Grid>
           <Grid item xs={12} sm={2}>
             <Button
@@ -197,6 +205,8 @@ function AdFlow() {
         </Grid>
       </Box>
     </Card>
+        <AddModal setOpen={setPlaceBidOpen} open={placeBidOPen}></AddModal>
+  </>
   );
 }
 
