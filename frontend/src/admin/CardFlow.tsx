@@ -1,12 +1,12 @@
 import { ChangeEvent, useCallback, useContext, useEffect, useState } from 'react';
-import { Avatar, Box, Button, Card, Grid, IconButton, lighten, styled, Tooltip, Typography } from '@mui/material';
+import { Avatar, Box, Button, Card, Grid, IconButton, lighten, styled, Typography } from '@mui/material';
 import OpenSeaIcon from '../components/ButtonsNFT/OpenSea';
-import StopCircleIcon from '@mui/icons-material/StopCircle';
 import FlatPagePlayer from '../billboardDisplays/FlatPagePlayer';
 import { SuperfluidContext, toFlowPerMinute, useContractReceiver, useContractStreams } from '../hooks/superfluid';
 import AddModal from '../components/Modal/AdModal';
 import { useProvider } from 'wagmi';
 import { DEFAULT_TOKEN_NAME } from '../utils/constants';
+import Ads from '../components/ButtonsNFT/Adv';
 
 const AvatarAddWrapper = styled(Avatar)(
   ({ theme }) => `
@@ -186,31 +186,6 @@ function AdFlow() {
                     </Typography>
                   </Box>
                 </Box>
-                <Box pt={3} display="flex" alignItems="center" justifyContent="space-between">
-                  {youAreActiveBidder && (
-                    <>
-                      <Tooltip arrow title="Stop your ad">
-                        <IconButtonError onClick={() => handleStop()}>
-                          <StopCircleIcon fontSize="small" />
-                        </IconButtonError>
-                      </Tooltip>
-                    </>
-                  )}
-                  {!youAreActiveBidder && !receiverResult?.youAreReceiver && (
-                    <>
-                      <Button
-                        variant={'text'}
-                        sx={{ background: '#FAFDFF' }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setPlaceBidOpen(true);
-                        }}
-                      >
-                        <Typography fontSize={13}>{`Place an Ad`}</Typography>
-                      </Button>
-                    </>
-                  )}
-                </Box>
               </CardCc>
             </Grid>
             <Grid item xs={12} sm={4}>
@@ -245,7 +220,26 @@ function AdFlow() {
             </Grid>
           </Grid>
           <Grid container spacing={3} sx={{ mt: 0.01 }}>
-            <Grid item xs={12} sm={4}></Grid>
+            <Grid item xs={12} sm={4}>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                {!youAreActiveBidder && !receiverResult?.youAreReceiver && (
+                  <>
+                    <Button
+                      startIcon={<Ads size={13}></Ads>}
+                      fullWidth={true}
+                      variant={'outlined'}
+                      sx={{ background: '#FAFDFF' }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPlaceBidOpen(true);
+                      }}
+                    >
+                      <Typography fontSize={13}>{`Place an Ad`}</Typography>
+                    </Button>
+                  </>
+                )}
+              </Box>
+            </Grid>
             <Grid item xs={12} sm={4}>
               <Button
                 fullWidth={true}
