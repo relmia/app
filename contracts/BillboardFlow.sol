@@ -143,9 +143,6 @@ contract BillboardFlow is SuperAppBase {
     function _updateCurrentWinningBid(address sender, int96 _winningBidFlow) internal {
         _winningBidSender = sender;
         _winningBid.flow = _winningBidFlow;
-    
-        console.log("updated winning bid");
-        console.logInt(_winningBid.flow);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -179,10 +176,6 @@ contract BillboardFlow is SuperAppBase {
             if (newAgreementFlowRate <= _winningBid.flow) {
                 revert("New flow rate is lass than current winning flow rate");
             } 
-             
-            // console.log("NEW FLOW RATE");
-            console.logInt(newAgreementFlowRate);
-            console.log(_winningBidSender);
             // for some reason deletion is leading to issues
             newCtx = cfaV1Lib.createFlowWithCtx(newCtx, _winningBidSender, _acceptedToken, _winningBid.flow);
             _updateCurrentWinningBid(sender, newAgreementFlowRate);
@@ -251,9 +244,7 @@ contract BillboardFlow is SuperAppBase {
         bytes calldata, // _cbdata,
         bytes calldata _ctx
     ) external override onlyHost returns (bytes memory newCtx) {
-        console.log("TERMINATED FN");
         if (_superToken != _acceptedToken || _agreementClass != address(cfaV1Lib.cfa)) {
-            console.log("RETURN EARLY");
             return _ctx;
         }
 
@@ -320,17 +311,13 @@ contract BillboardFlow is SuperAppBase {
 
         int96 inFlowRate = netFlowRate + outFlowRate;
 
-        console.logInt(inFlowRate);
         if (inFlowRate == 0) {
             // The flow does exist and should be deleted.
-            console.log("deleting");
             newCtx = cfaV1Lib.deleteFlowWithCtx(ctx, address(this), _receiver, _acceptedToken);
         } else if (outFlowRate != 0) {
             // The flow does exist and needs to be updated.
-            console.log("updating");
             newCtx = cfaV1Lib.updateFlowWithCtx(ctx, _receiver, _acceptedToken, inFlowRate);
         } else {
-            console.log("creating");
             // The flow does not exist but should be created.
             newCtx = cfaV1Lib.createFlowWithCtx(ctx, _receiver, _acceptedToken, inFlowRate);
         }

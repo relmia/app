@@ -13,7 +13,7 @@ const ALCHEMY_API_KEY = '7JOHPLbiPe75KZ3OBykXYwjZiHwcmX2x';
 // Beware: NEVER put real Ether into testing accounts
 const GOERLI_PRIVATE_KEY = '59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d';
 
-const MUMBAI_PRIVATE_KEY = 'f0462afeef96003d4925c40b25184ec9a477ac6c11723f7c536c38c659fccd1c';
+const MUMBAI_PRIVATE_KEY = '2499ba99e70552d06c26f8efdc63754aaab5c9e29a912a19c713ebcb8962a647';
 
 module.exports = {
   solidity: '0.8.14',
