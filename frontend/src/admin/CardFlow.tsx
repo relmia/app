@@ -13,9 +13,9 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
 import YoutubeEmbed from '../components/Video/Embed';
 import OpenSeaIcon from '../components/ButtonsNFT/OpenSea';
+import StopCircleIcon from '@mui/icons-material/StopCircle';
 import FlatPagePlayer from '../billboardDisplays/FlatPagePlayer';
 import {
   SuperfluidContext,
@@ -117,7 +117,7 @@ function AdFlow() {
 
   const [placeBidOPen, setPlaceBidOpen] = useState(false);
 
-  const handleDelete = () => {};
+  const handleStop = useCallback(() => {}, []);
 
   if (!allStreams) return <p>loading...</p>;
 
@@ -130,8 +130,11 @@ function AdFlow() {
               <CardCc sx={{ px: 2, pt: 2, pb: 1 }}>
                 <Box display="flex" alignItems="center">
                   <Box>
+                    <Typography variant="h2" fontWeight="normal">
+                      Active add hoster
+                    </Typography>
                     <Typography variant="h3" fontWeight="normal">
-                      {activeStream && <>{`${toFlowPerMinute(-activeStream.netFlow)}} -->`}</>}
+                      {activeStream && <>{`--> ${toFlowPerMinute(-activeStream.netFlow)}}`}</>}
                       {!activeStream && <>No active stream</>}
                     </Typography>
                     <Typography variant="subtitle2">
@@ -145,8 +148,8 @@ function AdFlow() {
                   {youAreActiveBidder && (
                     <>
                       <Tooltip arrow title="Stop your ad">
-                        <IconButtonError onClick={() => handleDelete()}>
-                          <DeleteTwoToneIcon fontSize="small" />
+                        <IconButtonError onClick={() => handleStop()}>
+                          <StopCircleIcon fontSize="small" />
                         </IconButtonError>
                       </Tooltip>
                     </>
@@ -177,8 +180,11 @@ function AdFlow() {
               <CardCc sx={{ px: 2, pt: 2, pb: 1 }}>
                 <Box display="flex" alignItems="center">
                   <Box>
+                    <Typography variant="h2" fontWeight="normal">
+                      Billboard NFT Owner
+                    </Typography>
                     <Typography variant="h3" fontWeight="normal">
-                      {activeStream?.netFlow && <>{`--> ${toFlowPerMinute(-activeStream.netFlow)}`}</>}
+                      {activeStream?.netFlow && <>{`${toFlowPerMinute(-activeStream.netFlow)} -->`}</>}
                       {!receiverResult && 'loading...'}
                     </Typography>
                     <Typography variant="subtitle2">
