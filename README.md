@@ -14,7 +14,7 @@ this and that is that in this implementation, only one sender can be streaming t
 at a time. If someone else wants to stream to the contract, they must stream more than the
 current person streaming, and if they do, the stream of the other person is stopped.
 
-It uses LivePeer ids for video hosting; every add is linked to a livepeer id in the smart contract. This in the future could be generalized to images hosted on IPFS.
+It uses LivePeer ids for video hosting; every add is linked to a livepeer id in the smart contract. This in the future could be generalized to images hosted on IPFS. The livepeer ids are passed to superfluid smart contract operations under `userData` and stored the current one is stored in the smart contract.
 
 It also contains sample frontend code for what a bidding and rendering interface could look like.
 
@@ -22,8 +22,11 @@ It also contains sample frontend code for what a bidding and rendering interface
 
 Here are some useful bits of code:
 
-- [ERC721 hook](https://github.com/relmia/app/blob/master/contracts/TradeableCashflow.sol#L27) that when a token is transfered, it redirects all revenues to the new owner.
-- [Superfluid hook](https://github.com/relmia/app/blob/master/contracts/BillboardFlow.sol#L167) that makes sure that a stream to the contract can only start if it
+- [ERC721 hook](contracts/TradeableCashflow.sol#L27) that when a token is transfered, it redirects all revenues to the new owner.
+- [Superfluid smart contract hook](contracts/BillboardFlow.sol#L167) that makes sure that a stream to the contract can only start if it has a greater flow than the currently running stream. If that's the case, then it stops the other stream.
+- [Automated smart contract tests](test/app.test.ts#L225) that documents what the business logic of the contract.
+- [React hooks for polling superfluids api](frontend/src/hooks/superfluid.ts) for streams and token balances.
+- [Video player react component for live peer videos](frontend/src/billboardDisplays/FlatPagePlayer.tsx) that fetches the current live peer video id from the smart contract and renders its hls feed.
 
 ## Setup
 
