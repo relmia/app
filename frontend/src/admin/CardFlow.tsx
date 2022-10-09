@@ -78,7 +78,66 @@ function AdFlow() {
 
   const { allStreams, activeStream, youAreActiveBidder } = useContractStreams();
 
+  const [senderBalance, setSenderBalance] = useState<string>();
+  const [receiverBalance, setReceiverBalance] = useState<string>();
+
+  const { superToken } = useContext(SuperfluidContext);
+
+  const provider = useProvider();
+
+  useEffect(() => {
+    if (!provider) return;
+    const sender = activeStream?.sender;
+
+    if (sender) {
+      const update = async () => {
+        const balance = await superToken.balanceOf({
+          account: sender,
+          providerOrSigner: provider,
+        });
+
+        setSenderBalance(balance);
+      };
+
+      const interval = setInterval(() => {
+        update();
+      }, 1000);
+
+      return () => {
+        clearInterval(interval);
+      };
+    } else {
+      setSenderBalance(undefined);
+    }
+  }, [activeStream?.sender, provider]);
+
   const receiverResult = useContractReceiver();
+
+  useEffect(() => {
+    if (!provider) return;
+    const receiver = receiverResult?.receiver;
+
+    if (receiver) {
+      const update = async () => {
+        const balance = await superToken.balanceOf({
+          account: receiver,
+          providerOrSigner: provider,
+        });
+
+        setReceiverBalance(balance);
+      };
+
+      const interval = setInterval(() => {
+        update();
+      }, 2500);
+
+      return () => {
+        clearInterval(interval);
+      };
+    } else {
+      setSenderBalance(undefined);
+    }
+  }, [activeStream?.sender, provider]);
 
   const [selectedValue, setSelectedValue] = useState('a');
 
@@ -113,7 +172,9 @@ function AdFlow() {
                       Active add hoster
                     </Typography>
                     <Typography variant="h3" fontWeight="normal">
-                      {activeStream && <>{`--> ${toFlowPerMinute(-activeStream.netFlow)}}`}</>}
+                      {activeStream && senderBalance && (
+                        <>{`${senderBalance} ${DEFAULT_TOKEN_NAME} --> ${toFlowPerMinute(-activeStream.netFlow)}`}</>
+                      )}
                       {!activeStream && <>No active stream</>}
                     </Typography>
                     <Typography variant="subtitle2">
@@ -163,7 +224,9 @@ function AdFlow() {
                       Billboard NFT Owner
                     </Typography>
                     <Typography variant="h3" fontWeight="normal">
-                      {activeStream?.netFlow && <>{`${toFlowPerMinute(-activeStream.netFlow)} -->`}</>}
+                      {activeStream?.netFlow && receiverBalance && (
+                        <>{`${toFlowPerMinute(-activeStream.netFlow)} --> ${receiverBalance} ${DEFAULT_TOKEN_NAME}`}</>
+                      )}
                       {!receiverResult && 'loading...'}
                     </Typography>
                     <Typography variant="subtitle2">

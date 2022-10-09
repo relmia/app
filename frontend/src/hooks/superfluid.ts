@@ -170,6 +170,13 @@ export function toFlowPerMinuteAmount(amount: number) {
   }
 }
 
+// export function formatNumber(amount: number) {
+//   const amountInWei = BigNumber.(amount);
+//   const monthlyAmount = formatEther(amountInWei.toString());
+
+//   return monthlyAmount;
+// }
+
 export function toFlowPerMinute(amount: number) {
   const value = toFlowPerMinuteAmount(amount);
 
