@@ -9,23 +9,30 @@ import {IConstantFlowAgreementV1} from "@superfluid-finance/ethereum-contracts/c
 
 import {SuperAppBase} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 
+import 'hardhat/console.sol';
+
 /// @dev Constant Flow Agreement registration key, used to get the address from the host.
 bytes32 constant CFA_ID = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
 
 /// @dev Thrown when the receiver is the zero adress.
-error InvalidReceiver();
+    error InvalidReceiver();
 
 /// @dev Thrown when receiver is also a super app.
-error ReceiverIsSuperApp();
+    error ReceiverIsSuperApp();
 
 /// @dev Thrown when the callback caller is not the host.
-error Unauthorized();
+    error Unauthorized();
 
 /// @dev Thrown when the token being streamed to this contract is invalid
-error InvalidToken();
+    error InvalidToken();
 
 /// @dev Thrown when the agreement is other than the Constant Flow Agreement V1
-error InvalidAgreement();
+    error InvalidAgreement();
+
+struct WinningBid { 
+//    address sender;
+   int96 flow;
+}
 
 /// @title Stream Redirection Contract
 /// @notice This contract is a registered super app, meaning it receives
@@ -40,6 +47,16 @@ contract BillboardFlow is SuperAppBase {
     /// @notice This is the current receiver that all streams will be redirected to.
     address public _receiver;
 
+    ISuperfluid private _host;
+
+    uint96 _currentFlow;
+
+    WinningBid internal _winningBid;
+
+    address internal _winningBidSender;
+
+    string private _activeStreamLivePeerId;
+
     constructor(
         ISuperfluid host,
         ISuperToken acceptedToken,
@@ -51,10 +68,13 @@ contract BillboardFlow is SuperAppBase {
 
         _acceptedToken = acceptedToken;
         _receiver = receiver;
+        _host = host;
+
+        _winningBid.flow = 0;
 
         cfaV1Lib = CFAv1Library.InitData({
-            host: host,
-            cfa: IConstantFlowAgreementV1(address(host.getAgreementClass(CFA_ID)))
+        host : host,
+        cfa : IConstantFlowAgreementV1(address(host.getAgreementClass(CFA_ID)))
         });
 
         // Registers Super App, indicating it is the final level (it cannot stream to other super
@@ -62,9 +82,9 @@ contract BillboardFlow is SuperAppBase {
         // `after*` callbacks.
         host.registerApp(
             SuperAppDefinitions.APP_LEVEL_FINAL |
-                SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
-                SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
-                SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
         );
     }
 
@@ -89,6 +109,10 @@ contract BillboardFlow is SuperAppBase {
         _;
     }
 
+    function activeStreamLivePeerId() public view returns (string memory) {
+        return _activeStreamLivePeerId;
+    }
+
     // ---------------------------------------------------------------------------------------------
     // RECEIVER DATA
 
@@ -97,16 +121,16 @@ contract BillboardFlow is SuperAppBase {
     /// @return receiver Receiving address.
     /// @return flowRate Flow rate from this contract to the receiver.
     function currentReceiver()
-        external
-        view
-        returns (
-            uint256 startTime,
-            address receiver,
-            int96 flowRate
-        )
+    external
+    view
+    returns (
+        uint256 startTime,
+        address receiver,
+        int96 flowRate
+    )
     {
         if (receiver != address(0)) {
-            (startTime, flowRate, , ) = cfaV1Lib.cfa.getFlow(
+            (startTime, flowRate,,) = cfaV1Lib.cfa.getFlow(
                 _acceptedToken,
                 address(this),
                 _receiver
@@ -116,57 +140,133 @@ contract BillboardFlow is SuperAppBase {
         }
     }
 
+    function _updateCurrentWinningBid(address sender, int96 _winningBidFlow) internal {
+        _winningBidSender = sender;
+        _winningBid.flow = _winningBidFlow;
+    }
+
     // ---------------------------------------------------------------------------------------------
     // SUPER APP CALLBACKS
 
     function afterAgreementCreated(
         ISuperToken _superToken,
         address _agreementClass,
-        bytes32, //_agreementId
-        bytes calldata, //_agreementData
+        bytes32 _agreementId,
+        bytes calldata _agreementData,
         bytes calldata, //_cbdata
         bytes calldata _ctx
     )
-        external
-        override
-        onlyExpected(_superToken, _agreementClass)
-        onlyHost
-        returns (bytes memory newCtx)
+    external
+    override
+    onlyExpected(_superToken, _agreementClass)
+    onlyHost
+    returns (bytes memory newCtx)
     {
-        return _updateOutflow(_ctx);
+        newCtx = _ctx;
+        // get the newly created flow's rate
+        (, int96 newAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
+        // if there is a current winning bid
+       (address sender,) = abi.decode(_agreementData, (address,address));
+        ISuperfluid.Context memory decompiledContext = _host.decodeCtx(_ctx);
+        (string memory newLivePeerId) = abi.decode(decompiledContext.userData, (string));
+
+
+        if (_winningBid.flow > 0)  {
+            // if the new flow rate is less than the current bid flow rate reject it
+            if (newAgreementFlowRate <= _winningBid.flow) {
+                revert("New flow rate is lass than current winning flow rate");
+            } 
+            // for some reason deletion is leading to issues
+            newCtx = cfaV1Lib.createFlowWithCtx(newCtx, _winningBidSender, _acceptedToken, _winningBid.flow);
+            _updateCurrentWinningBid(sender, newAgreementFlowRate);
+            newCtx = cfaV1Lib.updateFlowWithCtx(newCtx, _receiver, _acceptedToken, newAgreementFlowRate);
+
+            _activeStreamLivePeerId = newLivePeerId;
+
+            return newCtx;
+        } 
+
+         _activeStreamLivePeerId = newLivePeerId;
+        _updateCurrentWinningBid(sender, newAgreementFlowRate);
+        return cfaV1Lib.createFlowWithCtx(newCtx, _receiver, _acceptedToken, newAgreementFlowRate);
     }
 
     function afterAgreementUpdated(
         ISuperToken _superToken,
         address _agreementClass,
-        bytes32, // _agreementId,
-        bytes calldata, // _agreementData,
+        bytes32 _agreementId,
+        bytes calldata _agreementData,
         bytes calldata, // _cbdata,
         bytes calldata _ctx
     )
-        external
-        override
-        onlyExpected(_superToken, _agreementClass)
-        onlyHost
-        returns (bytes memory newCtx)
+    external
+    override
+    onlyExpected(_superToken, _agreementClass)
+    onlyHost
+    returns (bytes memory newCtx)
     {
-        return _updateOutflow(_ctx);
+        (, int96 updatedAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
+        (address sender,) = abi.decode(_agreementData, (address,address));
+
+        (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
+
+        if (outFlowRate >= updatedAgreementFlowRate) revert("cannot update with value less than output");
+
+        ISuperfluid.Context memory decompiledContext = _host.decodeCtx(_ctx);
+        (string memory newLivePeerId) = abi.decode(decompiledContext.userData, (string));
+        _activeStreamLivePeerId = newLivePeerId;
+
+        _updateCurrentWinningBid(sender, updatedAgreementFlowRate);
+
+        (, int96 inverseFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), sender);
+        newCtx = cfaV1Lib.updateFlowWithCtx(_ctx, _receiver, _acceptedToken, updatedAgreementFlowRate);
+
+        // here we delete the inverse flow if there was one created before.  we had to create it
+        // becuase for some reason deletion was causting an error, and creating an inverse one zeros
+        // the flow out
+        if (inverseFlowRate != 0)
+           newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx , sender, address(this), _acceptedToken);
+
+        return _updateOutflow(newCtx);
+    }
+
+    function _getFlowFromContractToAddress(address toAddress) internal view returns (int96 result) {
+      (, int96 inverseFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), toAddress);
+    
+      return inverseFlowRate;
     }
 
     function afterAgreementTerminated(
         ISuperToken _superToken,
         address _agreementClass,
-        bytes32, // _agreementId,
-        bytes calldata, // _agreementData
+        bytes32, // _agreementIdr
+        bytes calldata _agreementData,
         bytes calldata, // _cbdata,
         bytes calldata _ctx
     ) external override onlyHost returns (bytes memory newCtx) {
-        // According to the app basic law, we should never revert in a termination callback
         if (_superToken != _acceptedToken || _agreementClass != address(cfaV1Lib.cfa)) {
             return _ctx;
         }
 
-        return _updateOutflow(_ctx);
+        (address sender,) = abi.decode(_agreementData, (address,address));
+        if (sender == _winningBidSender) {
+            // set as if there is no winning bid if the one deleted is the current winning bid.
+            _winningBid.flow = 0;
+            _activeStreamLivePeerId = "";
+        }
+
+
+        (, int96 inverseFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), sender);
+
+
+        newCtx = _ctx;
+        // here we delete the inverse flow if there was one created before.  we had to create it
+        // becuase for some reason deletion was causting an error
+        if (inverseFlowRate != 0) {
+           newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx, sender, address(this), _acceptedToken);
+        }
+
+        return _updateOutflow(newCtx);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -181,7 +281,7 @@ contract BillboardFlow is SuperAppBase {
 
         if (newReceiver == _receiver) return;
 
-        (, int96 outFlowRate, , ) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
+        (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
 
         if (outFlowRate > 0) {
             cfaV1Lib.deleteFlow(address(this), _receiver, _acceptedToken);
@@ -202,7 +302,7 @@ contract BillboardFlow is SuperAppBase {
     /// net flow rate.
     /// @param ctx The context byte array from the Host's calldata.
     /// @return newCtx The new context byte array to be returned to the Host.
-    function _updateOutflow(bytes calldata ctx) private returns (bytes memory newCtx) {
+    function _updateOutflow(bytes memory ctx) private returns (bytes memory newCtx) {
         newCtx = ctx;
 
         int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
