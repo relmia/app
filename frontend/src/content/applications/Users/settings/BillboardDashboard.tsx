@@ -10,7 +10,13 @@ import { useContext, useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import YoutubeEmbed from '../../../../components/Video/Embed';
 import Balance from './Balance';
-import { SuperfluidContext, useContractStreams, useSuperFluid, useSuperToken } from '../../../../hooks/superfluid';
+import {
+  SuperfluidContext,
+  toFlowPerMinute,
+  useContractStreams,
+  useSuperFluid,
+  useSuperToken,
+} from '../../../../hooks/superfluid';
 import { DEFAULT_TOKEN_NAME } from '../../../../utils/constants';
 import useTokenContractAddressAndAbi from '../../../../hooks/useTokenContractAddressAndAbi';
 import { useAccount } from 'wagmi';
@@ -42,7 +48,7 @@ const InfoDebug = () => {
       {activeStream && (
         <>
           <p>
-            flowRate: {activeStream.netFlow} | from: {activeStream.sender}
+            flowRate: {toFlowPerMinute(activeStream.netFlow)} | from: {activeStream.sender}
           </p>
           {youAreActiveBidder && (
             <p>

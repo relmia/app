@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useAccount, useNetwork, useProvider } from 'wagmi';
 import { Framework, IStream, PagedResult } from '@superfluid-finance/sdk-core';
-import { MUMBAI } from '../utils/constants';
+import { DEFAULT_TOKEN_NAME, MUMBAI } from '../utils/constants';
 import SuperToken from '@superfluid-finance/sdk-core/dist/module/SuperToken';
-import { Contract } from 'ethers';
+import { BigNumber } from 'ethers';
+import { formatEther } from 'ethers/lib/utils';
 
 export const useSuperFluid = () => {
   const { chain } = useNetwork();
@@ -100,6 +101,24 @@ export const useContractStreams = (pollInterval = 5000) => {
 
   return { activeStream, allStreams, youAreActiveBidder };
 };
+
+export function toFlowPerMinuteAmount(amount: number) {
+  if (typeof Number(amount) === 'number') {
+    if (Number(amount) === 0) {
+      return 0;
+    }
+    const amountInWei = BigNumber.from(amount);
+    const monthlyAmount = formatEther(amountInWei.toString());
+    const calculatedFlowRate = +monthlyAmount * 60 * 24 * 30;
+    return calculatedFlowRate;
+  }
+}
+
+export function toFlowPerMinute(amount: number) {
+  const value = toFlowPerMinuteAmount(amount);
+
+  return `${amount} ${DEFAULT_TOKEN_NAME}/minute`;
+}
 
 export type SuperfluidContextType = {
   sf: Framework;
