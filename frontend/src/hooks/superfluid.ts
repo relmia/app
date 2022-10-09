@@ -25,8 +25,6 @@ export const useSuperFluid = () => {
       };
       const sf = await Framework.create(params);
 
-      console.log('CREATING TOKEN');
-
       setSf(sf);
     })();
   }, [provider, chain]);

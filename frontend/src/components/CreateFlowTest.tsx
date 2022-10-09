@@ -94,7 +94,6 @@ const CreateFlowInner = ({
           receiver: contractAddress,
           superToken: superToken.address,
           flowRate,
-          // userData: encodeLivePeerIdUserData('12f9l6ghp0ux7ru0'),
         };
         const createFlowOperation = sf.cfaV1.createFlow(params);
         const txn = await createFlowOperation.exec(signer);
