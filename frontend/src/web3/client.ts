@@ -1,4 +1,4 @@
-import { chain, createClient, configureChains } from 'wagmi';
+import { chain, configureChains, createClient } from 'wagmi';
 
 import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
@@ -8,7 +8,7 @@ import { getDefaultWallets } from '@rainbow-me/rainbowkit';
 // Configure chains & providers with the Alchemy provider.
 // Two popular providers are Alchemy (alchemy.com) and Infura (infura.io)
 const { chains, provider, webSocketProvider } = configureChains(
-  [chain.hardhat, chain.polygonMumbai],
+  [chain.polygonMumbai],
   [alchemyProvider({ apiKey: import.meta.env.VITE_APP_ALCHEMY_ID }), publicProvider()],
 );
 

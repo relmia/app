@@ -1,11 +1,10 @@
 import { TransactionResponse } from '@ethersproject/providers';
-import { Framework, SuperToken } from '@superfluid-finance/sdk-core';
 import { BigNumber } from 'ethers';
 import { formatEther } from 'ethers/lib/utils';
 import { useCallback, useEffect, useState } from 'react';
-import { useAccount, useNetwork, useProvider, useSigner } from 'wagmi';
-import { useSuperFluid, useSuperToken } from '../hooks/superfluid';
+import { useAccount, useProvider, useSigner } from 'wagmi';
 import useTokenContractAddressAndAbi, { GetContractArgs } from '../hooks/useTokenContractAddressAndAbi';
+import { DEFAULT_TOKEN_NAME } from '../utils/constants';
 
 function calculateFlowRate(amount: any) {
   if (typeof Number(amount) !== 'number' || isNaN(Number(amount)) === true) {
@@ -27,11 +26,11 @@ const CreateFlowInner = ({
 }: {
   getContractArgs: GetContractArgs;
 }) => {
-  const sf = useSuperFluid();
+  //onst sf = useSuperFluid();
 
   const superToken = useSuperToken({
     sf,
-    tokenName: 'fDAIx',
+    tokenName: DEFAULT_TOKEN_NAME,
   });
 
   const provider = useProvider();
@@ -40,7 +39,7 @@ const CreateFlowInner = ({
 
   const { data: signer } = useSigner();
 
-  const [tokenName] = useState<string>('fDAIx');
+  const [tokenName] = useState<string>(DEFAULT_TOKEN_NAME);
 
   const [balance, setBalance] = useState<string>();
 
@@ -100,7 +99,7 @@ const CreateFlowInner = ({
 
         setTx(tx);
       } finally {
-        setCreatingNewFlow(false);
+        setCreatingNewFlow(-false);
       }
     })();
   }, [flowRate, sf, contractAddress, superToken, signer]);
