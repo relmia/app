@@ -1,20 +1,30 @@
+import { useRoutes } from 'react-router-dom';
+import router from '../src/router';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { WagmiConfig } from 'wagmi';
-import './App.css';
 import '@rainbow-me/rainbowkit/styles.css';
+
+import AdapterDateFns from '@mui/lab/AdapterDateFns';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import { WagmiConfig } from 'wagmi';
+
+import { CssBaseline } from '@mui/material';
+import ThemeProvider from './theme/ThemeProvider';
 import { chains, client } from './web3/client';
-import Web3Login from './web3/Web3Login';
-import CreateFlowTest from './components/CreateFlowTest';
 
 function App() {
+  const content = useRoutes(router);
+
   return (
-    <WagmiConfig client={client}>
-      <RainbowKitProvider chains={chains}>
-        <Web3Login />
-        <h1 className="text-3xl font-bold underline">Test App</h1>
-        <CreateFlowTest />
-      </RainbowKitProvider>
-    </WagmiConfig>
+    <ThemeProvider>
+      <WagmiConfig client={client}>
+        <RainbowKitProvider chains={chains}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <CssBaseline />
+            {content}
+          </LocalizationProvider>
+        </RainbowKitProvider>
+      </WagmiConfig>
+    </ThemeProvider>
   );
 }
 
