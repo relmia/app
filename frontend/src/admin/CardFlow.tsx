@@ -1,10 +1,12 @@
-import { ChangeEvent, useCallback, useContext, useState } from 'react';
+import { ChangeEvent, useCallback, useContext, useEffect, useState } from 'react';
 import { Avatar, Box, Button, Card, Grid, IconButton, lighten, styled, Tooltip, Typography } from '@mui/material';
 import OpenSeaIcon from '../components/ButtonsNFT/OpenSea';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import FlatPagePlayer from '../billboardDisplays/FlatPagePlayer';
 import { SuperfluidContext, toFlowPerMinute, useContractReceiver, useContractStreams } from '../hooks/superfluid';
 import AddModal from '../components/Modal/AdModal';
+import { useProvider } from 'wagmi';
+import { DEFAULT_TOKEN_NAME } from '../utils/constants';
 
 const AvatarAddWrapper = styled(Avatar)(
   ({ theme }) => `
