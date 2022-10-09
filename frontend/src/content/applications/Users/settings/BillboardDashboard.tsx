@@ -4,7 +4,7 @@ import { styled } from '@mui/material/styles';
 import MoreHorizTwoToneIcon from '@mui/icons-material/MoreHorizTwoTone';
 import CommentTwoToneIcon from '@mui/icons-material/CommentTwoTone';
 import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
-import Text from '../../../../../src/components/Text';
+import Text from '../../../../components/Text';
 import AddModal from '../../../../components/Modal/AdModal';
 import { useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
