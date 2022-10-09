@@ -305,13 +305,9 @@ describe('sending flows', async function () {
 
     const updatedAliceFlowRate = await getAliceFlowRate();
 
-    console.log('updated alice flow rate', updatedAliceFlowRate);
-
     // assert.equal(updatedAliceFlowRate, aliceFlowRate, 'alice flow differed');
     // assert.equal(updatedAliceFlowRate, await getOwnerFlowRate(), 'alice rate diff than owner');
     assert.equal(await getAppFlowRate(), '0', 'App flowRate not zero');
-
-    console.log('---- part b: create a flow that overrides the existing one -----');
 
     const jamesOp = sf.cfaV1.createFlow({
       receiver: TradeableCashflow.address,
@@ -324,8 +320,6 @@ describe('sending flows', async function () {
 
     await jamesOpTx.wait();
 
-    console.log('executed flow');
-
     const appFlowRate = await getAppFlowRate();
     const updatedOnwerFlowRate2 = await getOwnerFlowRate();
 
@@ -333,8 +327,6 @@ describe('sending flows', async function () {
 
     assert.equal(appFlowRate, '0', 'App flowRate not zero');
     assert.equal(await getCurrentLivePeerId(), jamesLivePeerId, 'live peer id should have changed');
-
-    console.log('---- part c: delete the new flow -----');
 
     const deleteOp = sf.cfaV1.deleteFlow({
       receiver: TradeableCashflow.address,
