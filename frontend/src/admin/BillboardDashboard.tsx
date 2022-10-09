@@ -4,14 +4,22 @@ import { styled } from '@mui/material/styles';
 import MoreHorizTwoToneIcon from '@mui/icons-material/MoreHorizTwoTone';
 import CommentTwoToneIcon from '@mui/icons-material/CommentTwoTone';
 import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
-import Text from '../../../../components/Text';
-import AddModal from '../../../../components/Modal/AdModal';
-import { useState } from 'react';
+import Text from '../components/Text';
+import AddModal from '../components/Modal/AdModal';
+import { useContext, useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
-import YoutubeEmbed from '../../../../components/Video/Embed';
+import YoutubeEmbed from '../components/Video/Embed';
 import Balance from './Balance';
-import { useSuperFluid, useSuperToken } from '../../../../hooks/superfluid';
-import { DEFAULT_TOKEN_NAME } from '../../../../utils/constants';
+import {
+  SuperfluidContext,
+  toFlowPerMinute,
+  useContractStreams,
+  useSuperFluid,
+  useSuperToken,
+} from '../hooks/superfluid';
+import { DEFAULT_TOKEN_NAME } from '../utils/constants';
+import useTokenContractAddressAndAbi from '../hooks/useTokenContractAddressAndAbi';
+import { useAccount } from 'wagmi';
 
 const CardActionsWrapper = styled(CardActions)(
   ({ theme }) => `
@@ -20,13 +28,52 @@ const CardActionsWrapper = styled(CardActions)(
 `,
 );
 
-function BillboardDashboard() {
-  const [open, setOpen] = useState(false);
-  const sf = useSuperFluid();
-  const token = useSuperToken({ sf, tokenName: DEFAULT_TOKEN_NAME });
+const InfoDebug = () => {
+  const { allStreams, activeStream, youAreActiveBidder } = useContractStreams();
+
+  const { contractAddress } = useContext(SuperfluidContext);
+
+  const { address } = useAccount();
+
+  if (!allStreams) return <p>loading...</p>;
+
+  console.log({
+    activeAddress: activeStream?.sender,
+    address,
+  });
 
   return (
     <>
+      <h2>Active Stream </h2>
+      {activeStream && (
+        <>
+          <p>
+            flowRate: {toFlowPerMinute(activeStream.netFlow)} | from: {activeStream.sender}
+          </p>
+          {youAreActiveBidder && (
+            <p>
+              <b>You are the highest bidder</b>
+            </p>
+          )}
+          {!youAreActiveBidder && (
+            <p>
+              Place a bid greater than {activeStream.sender}'s to replace the ad with yours <br />
+              ToDo: button to place bid
+            </p>
+          )}
+        </>
+      )}
+      {!activeStream && <p>There is no active stream</p>}
+    </>
+  );
+};
+
+function BillboardDashboard() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <InfoDebug />
       <Balance></Balance>
       <Box sx={{ p: 2 }}></Box>
       <Card>
@@ -90,4 +137,25 @@ function BillboardDashboard() {
   );
 }
 
-export default BillboardDashboard;
+function BillboardDashboardWrapper() {
+  const sf = useSuperFluid();
+  const superToken = useSuperToken({ sf, tokenName: DEFAULT_TOKEN_NAME });
+
+  const contractAddress = useTokenContractAddressAndAbi();
+
+  if (!sf || !superToken || !contractAddress) return null;
+
+  return (
+    <SuperfluidContext.Provider
+      value={{
+        sf,
+        superToken,
+        contractAddress: contractAddress.addressOrName,
+      }}
+    >
+      <BillboardDashboard></BillboardDashboard>
+    </SuperfluidContext.Provider>
+  );
+}
+
+export default BillboardDashboardWrapper;

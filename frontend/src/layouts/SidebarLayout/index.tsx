@@ -3,7 +3,7 @@ import { alpha, Box, lighten, useTheme } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
 import Header from './Header';
-import Sidebar from './Sidebar';
+// import Sidebar from './Sidebar';
 
 interface SidebarLayoutProps {
   children?: ReactNode;
@@ -36,7 +36,7 @@ const SidebarLayout: FC<SidebarLayoutProps> = () => {
         }}
       >
         <Header />
-        <Sidebar />
+        {/* <Sidebar /> */}
         <Box
           sx={{
             position: 'relative',
