@@ -6,13 +6,14 @@ import CommentTwoToneIcon from '@mui/icons-material/CommentTwoTone';
 import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
 import Text from '../../../../components/Text';
 import AddModal from '../../../../components/Modal/AdModal';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import YoutubeEmbed from '../../../../components/Video/Embed';
 import Balance from './Balance';
-import { SuperfluidContext, useSuperFluid, useSuperToken } from '../../../../hooks/superfluid';
+import { SuperfluidContext, useContractStreams, useSuperFluid, useSuperToken } from '../../../../hooks/superfluid';
 import { DEFAULT_TOKEN_NAME } from '../../../../utils/constants';
 import useTokenContractAddressAndAbi from '../../../../hooks/useTokenContractAddressAndAbi';
+import { useAccount } from 'wagmi';
 
 const CardActionsWrapper = styled(CardActions)(
   ({ theme }) => `
@@ -22,7 +23,43 @@ const CardActionsWrapper = styled(CardActions)(
 );
 
 const InfoDebug = () => {
-  return null;
+  const { allStreams, activeStream, youAreActiveBidder } = useContractStreams();
+
+  const { contractAddress } = useContext(SuperfluidContext);
+
+  const { address } = useAccount();
+
+  if (!allStreams) return <p>loading...</p>;
+
+  console.log({
+    activeAddress: activeStream?.sender,
+    address,
+  });
+
+  return (
+    <>
+      <h2>Active Stream </h2>
+      {activeStream && (
+        <>
+          <p>
+            flowRate: {activeStream.netFlow} | from: {activeStream.sender}
+          </p>
+          {youAreActiveBidder && (
+            <p>
+              <b>You are the highest bidder</b>
+            </p>
+          )}
+          {!youAreActiveBidder && (
+            <p>
+              Place a bid greater than {activeStream.sender}'s to replace the ad with yours <br />
+              ToDo: button to place bid
+            </p>
+          )}
+        </>
+      )}
+      {!activeStream && <p>There is no active stream</p>}
+    </>
+  );
 };
 
 function BillboardDashboard() {

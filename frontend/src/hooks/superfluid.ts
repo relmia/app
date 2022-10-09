@@ -1,6 +1,6 @@
-import { createContext, useEffect, useState } from 'react';
-import { useNetwork, useProvider } from 'wagmi';
-import { Framework } from '@superfluid-finance/sdk-core';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { useAccount, useNetwork, useProvider } from 'wagmi';
+import { Framework, IStream, PagedResult } from '@superfluid-finance/sdk-core';
 import { MUMBAI } from '../utils/constants';
 import SuperToken from '@superfluid-finance/sdk-core/dist/module/SuperToken';
 import { Contract } from 'ethers';
@@ -47,7 +47,59 @@ export const useSuperToken = ({ sf, tokenName }: { sf: Framework | undefined; to
   return superToken;
 };
 
-export const useCurrentBidInfo = ({ sf, token }: { sf: Framework | undefined; token: SuperToken | undefined }) => {};
+export const useContractStreams = (pollInterval = 5000) => {
+  const { sf, contractAddress } = useContext(SuperfluidContext);
+
+  const [allStreams, setAllStreams] = useState<(IStream & { netFlow: number })[]>();
+  const [activeStream, setActiveStream] = useState<IStream & { netFlow: number }>();
+
+  const { address } = useAccount();
+
+  const [youAreActiveBidder, setYouAreActiveBidder] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      // TODO: single gql query
+      const inputStreams = (
+        await sf.query.listStreams({
+          receiver: contractAddress,
+        })
+      ).items;
+
+      const outputStreams = (
+        await sf.query.listStreams({
+          sender: contractAddress,
+        })
+      ).items;
+
+      const netInputStreams = inputStreams
+        .map((x) => {
+          const outputStreamForInput = outputStreams.find((y) => x.sender === y.receiver);
+
+          const netFlow = -+x.currentFlowRate + +(outputStreamForInput?.currentFlowRate || 0);
+
+          console.log(+x.currentFlowRate, +(outputStreamForInput?.currentFlowRate || 0));
+
+          return {
+            ...x,
+            netFlow,
+          };
+        })
+
+        .sort((x) => x.netFlow);
+
+      const activeStream = netInputStreams.filter((x) => x.netFlow > 0)[0];
+
+      const youAreActiveBidder = activeStream && activeStream?.sender.toLowerCase() === address?.toLowerCase();
+
+      setAllStreams(netInputStreams);
+      setActiveStream(activeStream);
+      setYouAreActiveBidder(youAreActiveBidder);
+    })();
+  }, [pollInterval, sf]);
+
+  return { activeStream, allStreams, youAreActiveBidder };
+};
 
 export type SuperfluidContextType = {
   sf: Framework;
@@ -55,4 +107,5 @@ export type SuperfluidContextType = {
   contractAddress: string;
 };
 
-export const SuperfluidContext = createContext<SuperfluidContextType | null>(null);
+// @ts-ignore
+export const SuperfluidContext = createContext<SuperfluidContextType>();
