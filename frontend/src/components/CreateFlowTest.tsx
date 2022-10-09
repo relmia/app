@@ -17,8 +17,7 @@ function calculateFlowRate(amount: any) {
     }
     const amountInWei = BigNumber.from(amount);
     const monthlyAmount = formatEther(amountInWei.toString());
-    // @ts-ignore
-    const calculatedFlowRate = monthlyAmount * 3600 * 24 * 30;
+    const calculatedFlowRate = +monthlyAmount * 3600 * 24 * 30;
     return calculatedFlowRate;
   }
 }
@@ -112,6 +111,9 @@ const CreateFlowInner = ({
         <label>Your address: {address}</label>
       </p>
       <p>
+        <label>Contract address: {contractAddress}</label>
+      </p>
+      <p>
         <label>Token: {tokenName}</label>
       </p>
       <p>
@@ -129,7 +131,7 @@ const CreateFlowInner = ({
       >
         <legend>Set flow amount to this contract</legend>
         <p>
-          <label htmlFor="flowAmount">Flow Amount</label>
+          <label htmlFor="flowAmount">FlowRate in wei/second</label>
           <br />
           <input
             type="number"
@@ -143,9 +145,16 @@ const CreateFlowInner = ({
               setFlowRateDisplay(newFlowRateDisplay.toString());
             }}
           />
+          <br />
+          {flowRateDisplay && <>Flow per month {flowRateDisplay}</>}
         </p>
         <p>
-          <input type="submit" value="Set new Amount" disabled={creatingNewFlow} />
+          <input
+            type="submit"
+            value="Create new Flow"
+            disabled={creatingNewFlow}
+            style={{ background: 'black', color: 'white', cursor: 'pointer' }}
+          />
           {tx ? `Transaction submitted: ${tx}` : null}
         </p>
       </form>

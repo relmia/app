@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNetwork, useProvider } from 'wagmi';
 import { Framework, SuperToken } from '@superfluid-finance/sdk-core';
 
@@ -8,6 +8,8 @@ export const useSuperFluid = () => {
   const { chain } = useNetwork();
 
   const provider = useProvider();
+
+  const [sf, setSf] = useState<Framework>();
 
   useEffect(() => {
     (async () => {
@@ -25,11 +27,23 @@ export const useSuperFluid = () => {
 
       console.log('CREATING TOKEN');
 
+      setSf(sf);
+    })();
+  }, [provider, chain]);
+
+  return sf;
+};
+
+export const useSuperToken = ({ sf, tokenName }: { sf: Framework | undefined; tokenName: string }) => {
+  const [superToken, setSuperToken] = useState<SuperToken>();
+  useEffect(() => {
+    if (!sf) return;
+    (async () => {
       const superToken = await sf.loadSuperToken(tokenName);
 
       setSuperToken(superToken);
-
-      setSf(sf);
     })();
-  }, [provider, chain, tokenName]);
+  }, [sf, tokenName]);
+
+  return superToken;
 };
