@@ -8,14 +8,14 @@ import {
   Divider,
   IconButton,
   Link,
-  Typography
+  Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 import MoreHorizTwoToneIcon from '@mui/icons-material/MoreHorizTwoTone';
 import CommentTwoToneIcon from '@mui/icons-material/CommentTwoTone';
 import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
-import Text from 'src/components/Text';
+import Text from '../../../../../src/components/Text';
 import AddModal from '../../../../components/Modal/AdModal';
 import { useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
@@ -25,7 +25,7 @@ const CardActionsWrapper = styled(CardActions)(
   ({ theme }) => `
      background: ${theme.colors.alpha.black[5]};
      padding: ${theme.spacing(3)};
-`
+`,
 );
 
 function ActivityTab() {
@@ -58,24 +58,16 @@ function ActivityTab() {
       />
       <Box px={3} pb={2}>
         <Typography variant="h2" sx={{ pb: 1 }}>
-          Metaverse Billboad
+          Meta-verse Billboad
         </Typography>
       </Box>
       <YoutubeEmbed></YoutubeEmbed>
-      <Box p={3}>
-        <Typography variant="subtitle2">
-          <Link href="#" underline="hover">
-            example.com
-          </Link>{' '}
-          • 4 mins read
-        </Typography>
-      </Box>
       <Divider />
       <CardActionsWrapper
         sx={{
           display: { xs: 'block', md: 'flex' },
           alignItems: 'center',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
         }}
       >
         <Box>
@@ -88,11 +80,7 @@ function ActivityTab() {
           >
             Add
           </Button>
-          <Button
-            startIcon={<CommentTwoToneIcon />}
-            variant="outlined"
-            sx={{ mx: 2 }}
-          >
+          <Button startIcon={<CommentTwoToneIcon />} variant="outlined" sx={{ mx: 2 }}>
             Comment
           </Button>
           <Button startIcon={<ShareTwoToneIcon />} variant="outlined">

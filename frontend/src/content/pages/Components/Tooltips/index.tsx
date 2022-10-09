@@ -1,18 +1,11 @@
 import { Helmet } from 'react-helmet-async';
-import PageTitle from 'src/components/PageTitle';
-import PageTitleWrapper from 'src/components/PageTitleWrapper';
-import {
-  Container,
-  Grid,
-  Card,
-  CardHeader,
-  CardContent,
-  Divider
-} from '@mui/material';
+import PageTitle from '../src/components/PageTitle';
+import PageTitleWrapper from '../src/components/PageTitleWrapper';
+import { Container, Grid, Card, CardHeader, CardContent, Divider } from '@mui/material';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
-import Footer from 'src/components/Footer';
+import Footer from '../src/components/Footer';
 
 function Tooltips() {
   return (
@@ -28,13 +21,7 @@ function Tooltips() {
         />
       </PageTitleWrapper>
       <Container maxWidth="lg">
-        <Grid
-          container
-          direction="row"
-          justifyContent="center"
-          alignItems="stretch"
-          spacing={3}
-        >
+        <Grid container direction="row" justifyContent="center" alignItems="stretch" spacing={3}>
           <Grid item xs={12}>
             <Card>
               <CardHeader title="Positioning" />
@@ -68,13 +55,7 @@ function Tooltips() {
                         <Button>left-end</Button>
                       </Tooltip>
                     </Grid>
-                    <Grid
-                      item
-                      container
-                      xs={6}
-                      alignItems="flex-end"
-                      direction="column"
-                    >
+                    <Grid item container xs={6} alignItems="flex-end" direction="column">
                       <Grid item>
                         <Tooltip arrow title="Add" placement="right-start">
                           <Button>right-start</Button>

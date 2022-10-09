@@ -1,15 +1,8 @@
 import { Helmet } from 'react-helmet-async';
-import PageTitle from 'src/components/PageTitle';
-import PageTitleWrapper from 'src/components/PageTitleWrapper';
-import {
-  Container,
-  Grid,
-  Card,
-  CardHeader,
-  CardContent,
-  Divider
-} from '@mui/material';
-import Footer from 'src/components/Footer';
+import PageTitle from '../src/components/PageTitle';
+import PageTitleWrapper from '../src/components/PageTitleWrapper';
+import { Container, Grid, Card, CardHeader, CardContent, Divider } from '@mui/material';
+import Footer from '../src/components/Footer';
 import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
 import { deepOrange, deepPurple, green, pink } from '@mui/material/colors';
@@ -40,9 +33,9 @@ function stringToColor(string: string) {
 function stringAvatar(name: string) {
   return {
     sx: {
-      bgcolor: stringToColor(name)
+      bgcolor: stringToColor(name),
     },
-    children: `${name.split(' ')[0][0]}${name.split(' ')[1][0]}`
+    children: `${name.split(' ')[0][0]}${name.split(' ')[1][0]}`,
   };
 }
 
@@ -60,13 +53,7 @@ function Avatars() {
         />
       </PageTitleWrapper>
       <Container maxWidth="lg">
-        <Grid
-          container
-          direction="row"
-          justifyContent="center"
-          alignItems="stretch"
-          spacing={3}
-        >
+        <Grid container direction="row" justifyContent="center" alignItems="stretch" spacing={3}>
           <Grid item xs={12}>
             <Card>
               <CardHeader title="Images" />
@@ -74,14 +61,8 @@ function Avatars() {
               <CardContent>
                 <Stack direction="row" spacing={2}>
                   <Avatar alt="Remy Sharp" src="/static/images/avatars/1.jpg" />
-                  <Avatar
-                    alt="Travis Howard"
-                    src="/static/images/avatars/2.jpg"
-                  />
-                  <Avatar
-                    alt="Cindy Baker"
-                    src="/static/images/avatars/3.jpg"
-                  />
+                  <Avatar alt="Travis Howard" src="/static/images/avatars/2.jpg" />
+                  <Avatar alt="Cindy Baker" src="/static/images/avatars/3.jpg" />
                 </Stack>
               </CardContent>
             </Card>
@@ -111,17 +92,9 @@ function Avatars() {
               <Divider />
               <CardContent>
                 <Stack direction="row" spacing={2}>
-                  <Avatar
-                    alt="Remy Sharp"
-                    src="/static/images/avatars/4.jpg"
-                    sx={{ width: 24, height: 24 }}
-                  />
+                  <Avatar alt="Remy Sharp" src="/static/images/avatars/4.jpg" sx={{ width: 24, height: 24 }} />
                   <Avatar alt="Remy Sharp" src="/static/images/avatars/5.jpg" />
-                  <Avatar
-                    alt="Remy Sharp"
-                    src="/static/images/avatars/3.jpg"
-                    sx={{ width: 56, height: 56 }}
-                  />
+                  <Avatar alt="Remy Sharp" src="/static/images/avatars/3.jpg" sx={{ width: 56, height: 56 }} />
                 </Stack>
               </CardContent>
             </Card>

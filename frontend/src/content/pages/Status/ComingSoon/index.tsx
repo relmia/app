@@ -10,10 +10,10 @@ import {
   FormControl,
   InputAdornment,
   Button,
-  FormHelperText
+  FormHelperText,
 } from '@mui/material';
 import { Helmet } from 'react-helmet-async';
-import Logo from 'src/components/LogoSign';
+import Logo from '../src/components/LogoSign';
 
 import { styled } from '@mui/material/styles';
 import FacebookIcon from '@mui/icons-material/Facebook';
@@ -30,31 +30,31 @@ const MainContent = styled(Box)(
     flex-direction: column;
     align-items: center;
     justify-content: center;
-`
+`,
 );
 
 const TypographyH1 = styled(Typography)(
   ({ theme }) => `
   font-size: ${theme.typography.pxToRem(75)};
-`
+`,
 );
 
 const TypographyH3 = styled(Typography)(
   ({ theme }) => `
   color: ${theme.colors.alpha.black[50]};
-`
+`,
 );
 
 const OutlinedInputWrapper = styled(OutlinedInput)(
   ({ theme }) => `
     background-color: ${theme.colors.alpha.white[100]};
-`
+`,
 );
 
 const ButtonNotify = styled(Button)(
   ({ theme }) => `
     margin-right: -${theme.spacing(1)};
-`
+`,
 );
 
 function StatusComingSoon() {
@@ -67,7 +67,7 @@ function StatusComingSoon() {
         days: Math.floor(difference / (1000 * 60 * 60 * 24)),
         hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
         minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60)
+        seconds: Math.floor((difference / 1000) % 60),
       };
     }
 
@@ -93,7 +93,7 @@ function StatusComingSoon() {
       <Box textAlign="center" px={3}>
         <TypographyH1 variant="h1">{timeLeft[interval]}</TypographyH1>
         <TypographyH3 variant="h3">{interval}</TypographyH3>
-      </Box>
+      </Box>,
     );
   });
 
@@ -110,21 +110,11 @@ function StatusComingSoon() {
               <Typography variant="h1" sx={{ mt: 4, mb: 2 }}>
                 Coming Soon
               </Typography>
-              <Typography
-                variant="h3"
-                color="text.secondary"
-                fontWeight="normal"
-                sx={{ mb: 4 }}
-              >
-                We're working on implementing the last features before our
-                launch!
+              <Typography variant="h3" color="text.secondary" fontWeight="normal" sx={{ mb: 4 }}>
+                We're working on implementing the last features before our launch!
               </Typography>
             </Container>
-            <img
-              alt="Coming Soon"
-              height={200}
-              src="/static/images/status/coming-soon.svg"
-            />
+            <img alt="Coming Soon" height={200} src="/static/images/status/coming-soon.svg" />
           </Box>
 
           <Box display="flex" justifyContent="center">
@@ -150,9 +140,7 @@ function StatusComingSoon() {
                     </InputAdornment>
                   }
                 />
-                <FormHelperText>
-                  We'll email you once our website is launched!
-                </FormHelperText>
+                <FormHelperText>We'll email you once our website is launched!</FormHelperText>
               </FormControl>
               <Divider sx={{ my: 4 }} />
               <Box sx={{ textAlign: 'center' }}>
