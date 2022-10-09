@@ -1,6 +1,7 @@
 import { alpha, Avatar, Box, Divider, lighten, Stack, styled, useTheme } from '@mui/material';
 // import { SidebarContext } from '../../../contexts/SidebarContext';
 import Web3Login from '../../../web3/Web3Login';
+import logoUrl from './logo.png';
 
 const HeaderWrapper = styled(Box)(
   ({ theme }) => `
@@ -23,7 +24,7 @@ function Header() {
   const theme = useTheme();
 
   const LogoApp = () => (
-    <Avatar variant={'square'} alt="Relmia" src="/static/images/logo.png" sx={{ width: 250, height: 70, ml: 10 }} />
+    <Avatar variant={'square'} alt="Relmia" src={logoUrl} sx={{ width: 250, height: 70, ml: 10 }} />
   );
 
   return (
