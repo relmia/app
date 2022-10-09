@@ -2,47 +2,54 @@ import { Button, CircularProgress, Dialog, DialogActions, DialogContent, Snackba
 import DialogTitle from '@mui/material/DialogTitle';
 import { DEFAULT_TOKEN_NAME } from '../../utils/constants';
 import { useSigner } from 'wagmi';
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { ICreateFlowParams } from '@superfluid-finance/sdk-core';
-import { useSuperFluid, useSuperToken } from '../../hooks/superfluid';
+import { SuperfluidContext, useSuperFluid, useSuperToken } from '../../hooks/superfluid';
 import useTokenContractAddressAndAbi from '../../hooks/useTokenContractAddressAndAbi';
 import { Alert } from '../Alert/Alert';
+import { defaultAbiCoder } from '@ethersproject/abi';
 
-const AddModal = ({ setOpen, open }: { setOpen: any; open: boolean }): JSX.Element => {
-  const sf = useSuperFluid();
-  const superToken = useSuperToken({ sf, tokenName: DEFAULT_TOKEN_NAME });
+function encodeLivePeerIdUserData(livePeerId: string) {
+  return defaultAbiCoder.encode(['string'], [livePeerId]);
+}
+
+const AddModal = ({ setOpen, open }: { setOpen: (open: boolean) => void; open: boolean }): JSX.Element => {
   const [flowRate, setFlowRate] = useState('0');
-  const [idVideo, setIdVideo] = useState(0);
+  const [livePeerId, setLivePeerId] = useState('');
   const [txOnGoing, setTxOnGoing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
 
-  const contractAddress = useTokenContractAddressAndAbi();
+  const { contractAddress, sf, superToken } = useContext(SuperfluidContext);
 
   const { data: signer } = useSigner();
 
   const createNewFlow = useCallback(async () => {
-    if (!superToken || !sf || !contractAddress || !signer) return;
+    if (!signer) return;
 
     try {
       setTxOnGoing(true);
+      console.log({ flowRate, livePeerId });
       const params: ICreateFlowParams = {
-        receiver: contractAddress?.addressOrName,
+        receiver: contractAddress,
         superToken: superToken.address,
         flowRate,
+        userData: encodeLivePeerIdUserData(livePeerId),
       };
 
       const createFlowOperation = sf.cfaV1.createFlow(params);
       const txn = await createFlowOperation.exec(signer);
       await txn.wait();
       setShowSuccess(true);
+
+      setOpen(false);
     } catch (e) {
       setShowError(true);
       console.error(e);
     } finally {
       setTxOnGoing(false);
     }
-  }, [sf, superToken, contractAddress, signer]);
+  }, [sf, superToken, contractAddress, signer, livePeerId, flowRate]);
 
   return (
     <Dialog open={open} maxWidth={false} onClose={() => setOpen(false)} sx={{ px: 10 }}>
@@ -64,9 +71,9 @@ const AddModal = ({ setOpen, open }: { setOpen: any; open: boolean }): JSX.Eleme
         />
         <TextField
           disabled={txOnGoing}
-          value={idVideo}
+          value={livePeerId}
           onChange={(e) => {
-            setIdVideo(+e.target.value);
+            setLivePeerId(e.target.value);
           }}
           margin="dense"
           id="id"

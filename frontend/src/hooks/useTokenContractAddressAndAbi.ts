@@ -4,6 +4,7 @@ import { useAccount } from 'wagmi';
 import localHostAddress from '../contracts/localhost/contract-address.json';
 import goerliHostAddress from '../contracts/goerli/contract-address.json';
 import mumbaiHostAddress from '../contracts/mumbai/contract-address.json';
+import contractAbi from '../contracts/mumbai/TradeableCashflow.json';
 import { ContractInterface } from 'ethers';
 
 export type GetContractArgs = {
@@ -11,6 +12,7 @@ export type GetContractArgs = {
   addressOrName: string;
   /** Contract interface or ABI */
   chainId: number;
+  abi: ContractInterface;
 };
 
 const getContractAddressAndAbi = (chainId: number | undefined): GetContractArgs | null => {
@@ -20,6 +22,7 @@ const getContractAddressAndAbi = (chainId: number | undefined): GetContractArgs 
     return {
       addressOrName: localHostAddress.Token,
       chainId,
+      abi: contractAbi.abi,
     };
   }
 
@@ -27,6 +30,7 @@ const getContractAddressAndAbi = (chainId: number | undefined): GetContractArgs 
     return {
       addressOrName: goerliHostAddress.Token,
       chainId,
+      abi: contractAbi.abi,
     };
   }
 
@@ -34,6 +38,7 @@ const getContractAddressAndAbi = (chainId: number | undefined): GetContractArgs 
     return {
       addressOrName: mumbaiHostAddress.Token,
       chainId,
+      abi: contractAbi.abi,
     };
   }
 

@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useCallback, useContext, useState } from 'react';
 import {
   Avatar,
   Box,
@@ -16,6 +16,8 @@ import {
 import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
 import YoutubeEmbed from '../Video/Embed';
 import OpenSeaIcon from '../ButtonsNFT/OpenSea';
+import FlatPagePlayer from '../../billboardDisplays/FlatPagePlayer';
+import { SuperfluidContext, useSuperFluid } from '../../hooks/superfluid';
 
 const AvatarAddWrapper = styled(Avatar)(
   ({ theme }) => `
@@ -80,7 +82,9 @@ const CardCc = styled(Card)(
 `,
 );
 
-function MyCards() {
+const BillboardToken = '0';
+
+function AdFlow() {
   const data = {
     savedCards: 7,
   };
@@ -90,6 +94,14 @@ function MyCards() {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSelectedValue(event.target.value);
   };
+
+  const { contractAddress } = useContext(SuperfluidContext);
+
+  const viewOnOpenSea = useCallback(() => {
+    const openSeaUrl = `https://testnets.opensea.io/assets/goerli/mumbai/${contractAddress}/${BillboardToken}`;
+
+    window.location.href = openSeaUrl;
+  }, [contractAddress]);
 
   const handleDelete = () => {};
 
@@ -125,7 +137,7 @@ function MyCards() {
           </Grid>
           <Grid item xs={12} sm={4}>
             <CardCc sx={{ px: 2, pt: 2, pb: 1 }}>
-              <YoutubeEmbed></YoutubeEmbed>
+              <FlatPagePlayer />
             </CardCc>
           </Grid>
           <Grid item xs={12} sm={4}>
@@ -156,12 +168,17 @@ function MyCards() {
         <Grid container spacing={3} sx={{ mt: 0.01 }}>
           <Grid item xs={12} sm={4}></Grid>
           <Grid item xs={12} sm={2}>
-            <Button startIcon={<OpenSeaIcon size={44}></OpenSeaIcon>} variant={'text'} sx={{ background: '#FAFDFF' }}>
+            <Button variant={'text'} sx={{ background: '#FAFDFF' }}>
               <Typography fontSize={13}>{`Place an Ad`}</Typography>
             </Button>
           </Grid>
           <Grid item xs={12} sm={2}>
-            <Button startIcon={<OpenSeaIcon size={44}></OpenSeaIcon>} variant={'text'} sx={{ background: '#FAFDFF' }}>
+            <Button
+              startIcon={<OpenSeaIcon size={44}></OpenSeaIcon>}
+              variant={'text'}
+              sx={{ background: '#FAFDFF' }}
+              onClick={viewOnOpenSea}
+            >
               <Typography fontSize={13}>{`Buy on Open Sea`}</Typography>
             </Button>
           </Grid>
@@ -172,4 +189,4 @@ function MyCards() {
   );
 }
 
-export default MyCards;
+export default AdFlow;

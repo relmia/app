@@ -35,6 +35,7 @@ const InfoDebug = () => {
   console.log({
     activeAddress: activeStream?.sender,
     address,
+    contractAddress,
   });
 
   return (
@@ -103,6 +104,7 @@ function BillboardDashboardWrapper() {
         sf,
         superToken,
         contractAddress: contractAddress.addressOrName,
+        contractAbi: contractAddress.abi,
       }}
     >
       <BillboardDashboard></BillboardDashboard>
