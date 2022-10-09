@@ -2,10 +2,11 @@ import { useContext } from 'react';
 import Scrollbar from '../../../../src/components/Scrollbar';
 import { SidebarContext } from '../../../../src/contexts/SidebarContext';
 
-import { alpha, Box, darken, Divider, Drawer, lighten, styled, useTheme } from '@mui/material';
+import { alpha, Avatar, Box, darken, Divider, Drawer, lighten, styled, useTheme } from '@mui/material';
 
 import SidebarMenu from './SidebarMenu';
-import Logo from '../../../../src/components/LogoSign';
+
+const LogoApp = () => <Avatar alt="Relmia" src="/static/images/logo.png" sx={{ width: 100, height: 100, ml: 10 }} />;
 
 const SidebarWrapper = styled(Box)(
   ({ theme }) => `
@@ -44,14 +45,7 @@ function Sidebar() {
       >
         <Scrollbar>
           <Box mt={3}>
-            <Box
-              mx={2}
-              sx={{
-                width: 52,
-              }}
-            >
-              <Logo />
-            </Box>
+            <LogoApp></LogoApp>
           </Box>
           <Divider
             sx={{
@@ -88,14 +82,7 @@ function Sidebar() {
         >
           <Scrollbar>
             <Box mt={3}>
-              <Box
-                mx={2}
-                sx={{
-                  width: 52,
-                }}
-              >
-                <Logo />
-              </Box>
+              <LogoApp></LogoApp>
             </Box>
             <Divider
               sx={{

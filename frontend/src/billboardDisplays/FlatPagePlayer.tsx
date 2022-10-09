@@ -28,7 +28,9 @@ const FlatPagePlayer = () => {
 
   // return Livepeer({ playbackId: livePeerPlaybackId });
 
-  return <HLSVideo src="//livepeercdn.com/recordings/49773216-4e43-4505-8f2b-c925223d3fe7/index.m3u8" autoPlay muted />;
+  return (
+    <HLSVideo src="https://livepeercdn.com/recordings/49773216-4e43-4505-8f2b-c925223d3fe7/index.m3u8" autoPlay muted />
+  );
 };
 
 export default FlatPagePlayer;
