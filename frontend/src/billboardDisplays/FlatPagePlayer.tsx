@@ -27,7 +27,7 @@ const FlatPagePlayer = () => {
   const livePeerUrl = useMemo(() => {
     if (!livePeerPlaybackId) return null;
 
-    return `https://livepeercdn.com/hls/${livePeerPlaybackId}/index.m3u8`;
+    return `https://livepeercdn.com/recordings/${livePeerPlaybackId}/index.m3u8`;
   }, [livePeerPlaybackId]);
 
   if (!livePeerUrl || !livePeerClientInitialized) return <PosterImage />;
