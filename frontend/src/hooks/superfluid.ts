@@ -58,13 +58,30 @@ export const useActiveLivePeerStreamId = () => {
     watch: true,
   });
 
-  console.log('datga', data);
   const result = data?.[0] as string;
 
   // if empty string, then assume not set and return null
   if (result === '') return null;
 
   return result;
+};
+
+export const useContractReceiver = () => {
+  const { sf, contractAddress, contractAbi } = useContext(SuperfluidContext);
+  const { data: readResult } = useContractRead({
+    addressOrName: contractAddress,
+    contractInterface: contractAbi,
+    functionName: 'currentReceiver',
+  }); //as [[number, string, string] | undefined;
+
+  if (!readResult) return undefined;
+
+  const [startTime, receiver, flowRate] = readResult as [number, string, number];
+
+  return {
+    receiver,
+    flowRate,
+  };
 };
 
 export const useContractStreams = (pollInterval = 5000) => {

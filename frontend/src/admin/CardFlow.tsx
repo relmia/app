@@ -14,10 +14,16 @@ import {
   Typography,
 } from '@mui/material';
 import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
-import YoutubeEmbed from '../Video/Embed';
-import OpenSeaIcon from '../ButtonsNFT/OpenSea';
-import FlatPagePlayer from '../../billboardDisplays/FlatPagePlayer';
-import { SuperfluidContext, useSuperFluid } from '../../hooks/superfluid';
+import YoutubeEmbed from '../components/Video/Embed';
+import OpenSeaIcon from '../components/ButtonsNFT/OpenSea';
+import FlatPagePlayer from '../billboardDisplays/FlatPagePlayer';
+import {
+  SuperfluidContext,
+  toFlowPerMinute,
+  useContractReceiver,
+  useContractStreams,
+  useSuperFluid,
+} from '../hooks/superfluid';
 
 const AvatarAddWrapper = styled(Avatar)(
   ({ theme }) => `
@@ -89,6 +95,10 @@ function AdFlow() {
     savedCards: 7,
   };
 
+  const { allStreams, activeStream, youAreActiveBidder } = useContractStreams();
+
+  const receiverResult = useContractReceiver();
+
   const [selectedValue, setSelectedValue] = useState('a');
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -105,10 +115,10 @@ function AdFlow() {
 
   const handleDelete = () => {};
 
+  if (!allStreams) return <p>loading...</p>;
+
   return (
     <Card>
-      <CardHeader subheader={data.savedCards + ' saved cards'} title="Cards" />
-      <Divider />
       <Box p={3}>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={4}>
@@ -116,12 +126,13 @@ function AdFlow() {
               <Box display="flex" alignItems="center">
                 <Box>
                   <Typography variant="h3" fontWeight="normal">
-                    10003038383883838
+                    {activeStream && <>flowRate: {toFlowPerMinute(activeStream.netFlow)}</>}
+                    {!activeStream && <>No active stream</>}
                   </Typography>
                   <Typography variant="subtitle2">
-                    {` xDai / seg: `}
+                    {` xDai / min: `}
                     <Typography component="span" color="text.primary">
-                      500
+                      {activeStream?.sender}
                     </Typography>
                   </Typography>
                 </Box>

@@ -3,6 +3,7 @@ import { BigNumber } from 'ethers';
 import { formatEther } from 'ethers/lib/utils';
 import { useCallback, useEffect, useState } from 'react';
 import { useAccount, useProvider, useSigner } from 'wagmi';
+import { useSuperToken } from '../hooks/superfluid';
 import useTokenContractAddressAndAbi, { GetContractArgs } from '../hooks/useTokenContractAddressAndAbi';
 import { DEFAULT_TOKEN_NAME } from '../utils/constants';
 

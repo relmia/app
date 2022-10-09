@@ -14,7 +14,7 @@ import {
 import { DEFAULT_TOKEN_NAME } from '../utils/constants';
 import useTokenContractAddressAndAbi from '../hooks/useTokenContractAddressAndAbi';
 import { useAccount } from 'wagmi';
-import CardFlow from '../components/CardFlow/CardFlow';
+import CardFlow from './CardFlow';
 
 const CardActionsWrapper = styled(CardActions)(
   ({ theme }) => `
@@ -31,12 +31,6 @@ const InfoDebug = () => {
   const { address } = useAccount();
 
   if (!allStreams) return <p>loading...</p>;
-
-  console.log({
-    activeAddress: activeStream?.sender,
-    address,
-    contractAddress,
-  });
 
   return (
     <>
@@ -70,7 +64,7 @@ function BillboardDashboard() {
   return (
     <>
       <CardFlow></CardFlow>
-      <InfoDebug />
+      {/* <InfoDebug /> */}
       <Box sx={{ p: 2 }}></Box>
       <Card>
         <CardHeader
