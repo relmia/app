@@ -6,7 +6,8 @@ import { WrapperSuperToken } from '@superfluid-finance/sdk-core/dist/module/Supe
 
 import { Framework } from '@superfluid-finance/sdk-core';
 
-const { assert } = require('chai');
+import { assert } from 'chai';
+import { defaultAbiCoder } from '@ethersproject/abi';
 
 // TODO BUILD A HARDHAT PLUGIN AND REMOVE WEB3 FROM THIS
 const { ethers, web3 } = require('hardhat');
@@ -120,6 +121,16 @@ describe('sending flows', async function () {
     ).flowRate;
   }
 
+  async function getCurrentLivePeerId() {
+    const result = await TradeableCashflow.functions.activeStreamLivePeerId();
+
+    return result as string | undefined;
+  }
+
+  function encodeLivePeerIdUserData(livePeerId: string) {
+    return defaultAbiCoder.encode(['string'], [livePeerId]);
+  }
+
   beforeEach(async function () {
     let App = await ethers.getContractFactory('TradeableCashflow', accounts[0]);
     TradeableCashflow = await App.deploy(
@@ -141,13 +152,20 @@ describe('sending flows', async function () {
     await daixUpgradeOperation.exec(accounts[0]);
   });
 
-  it('Case #1 - Alice sends a flow', async () => {
+  it('Case #1 - Alice creates a flow', async () => {
     const aliceFlowRate = '100000000';
+
+    const initialLivePeerId = await getCurrentLivePeerId();
+
+    const livePeerId = 'alice-live-peer-id';
+
+    assert.equal(initialLivePeerId, '');
 
     const createFlowOperation = sf.cfaV1.createFlow({
       receiver: TradeableCashflow.address,
       superToken: daix.address,
       flowRate: aliceFlowRate,
+      userData: encodeLivePeerIdUserData(livePeerId),
     });
 
     const txn = await createFlowOperation.exec(aliceAcct);
@@ -159,16 +177,21 @@ describe('sending flows', async function () {
 
     assert.equal(ownerFlowRate, aliceFlowRate, 'owner not receiving 100% of flowRate');
 
-    assert.equal(appFlowRate, 0, 'App flowRate not zero');
+    assert.equal(appFlowRate, '0', 'App flowRate not zero');
+
+    assert.equal(await getCurrentLivePeerId(), livePeerId, 'live peer id didnt save');
   });
 
   it('Case #2 - Alice upates flows to the contract', async () => {
     const aliceFlowRate = '100000000';
 
+    const livePeerId = 'alice-live-peer-id';
+
     const createFlowOperation = sf.cfaV1.createFlow({
       receiver: TradeableCashflow.address,
       superToken: daix.address,
       flowRate: aliceFlowRate,
+      userData: encodeLivePeerIdUserData(livePeerId),
     });
 
     const initialOwnerFlowRate = await getOwnerFlowRate();
@@ -183,6 +206,7 @@ describe('sending flows', async function () {
       receiver: TradeableCashflow.address,
       superToken: daix.address,
       flowRate: newAliceFlowRate,
+      userData: encodeLivePeerIdUserData(livePeerId),
     });
 
     const updateFlowTxn = await updateFlowOperation.exec(aliceAcct);
@@ -193,10 +217,12 @@ describe('sending flows', async function () {
     const ownerFlowRate = (+(await getOwnerFlowRate()) - +initialOwnerFlowRate).toString();
 
     assert.equal(ownerFlowRate, newAliceFlowRate, 'owner not receiving correct updated flowRate');
-    assert.equal(appFlowRate, 0, 'App flowRate not zero');
+    assert.equal(appFlowRate, '0', 'App flowRate not zero');
+
+    assert.equal(await getCurrentLivePeerId(), livePeerId, 'live peer id didnt save');
   });
 
-  it('Case 3: Owners flow should be same after a new flow (minor than the actual) has created ', async () => {
+  it('Case 3: Owners flow should be same after a new flow (less than the exiting) has created ', async () => {
     const daixTransferOperation = daix.transfer({
       receiver: jamesAcct.address,
       amount: ethers.utils.parseEther('500'),
@@ -204,19 +230,17 @@ describe('sending flows', async function () {
 
     await daixTransferOperation.exec(aliceAcct);
 
-    const account2Balance = await daix.balanceOf({
-      account: jamesAcct.address,
-      providerOrSigner: superSigner,
-    });
-
     const aliceFlowRate = '120000000';
-
     const jamesFlowRate = '100000000';
+
+    const aliceLivePeerId = 'alice-live-peer-id';
+    const jamesLivePeerId = 'james-live-peer-id';
 
     const aliceOp = sf.cfaV1.createFlow({
       receiver: TradeableCashflow.address,
       superToken: daix.address,
       flowRate: aliceFlowRate,
+      userData: encodeLivePeerIdUserData(aliceLivePeerId),
     });
 
     const aliceOpTx = await aliceOp.exec(aliceAcct);
@@ -229,6 +253,7 @@ describe('sending flows', async function () {
       receiver: TradeableCashflow.address,
       superToken: daix.address,
       flowRate: jamesFlowRate,
+      userData: encodeLivePeerIdUserData(jamesLivePeerId),
     });
 
     let errorOccured = false;
@@ -248,10 +273,12 @@ describe('sending flows', async function () {
 
     assert.equal(initialOwnerFlowRate, updatedOnwerFlowRate2, 'owner flow is not the same as at the beginning');
 
-    assert.equal(appFlowRate, 0, 'App flowRate not zero');
+    assert.equal(appFlowRate, '0', 'App flowRate not zero');
+
+    assert.equal(await getCurrentLivePeerId(), aliceLivePeerId, 'live peer id should not have changed');
   });
 
-  it.only('Case 4: new flow should override existing flow if it is greater than existing flow', async () => {
+  it('Case 4: new flow should override existing flow if it is greater than existing flow', async () => {
     const daixTransferOperation = daix.transfer({
       receiver: jamesAcct.address,
       amount: ethers.utils.parseEther('500'),
@@ -259,19 +286,17 @@ describe('sending flows', async function () {
 
     await daixTransferOperation.exec(aliceAcct);
 
-    const account2Balance = await daix.balanceOf({
-      account: jamesAcct.address,
-      providerOrSigner: superSigner,
-    });
-
     const aliceFlowRate = '12000000';
-
     const jamesFlowRate = '15000000';
+
+    const aliceLivePeerId = 'alice-live-peer-id';
+    const jamesLivePeerId = 'james-live-peer-id';
 
     const aliceOp = sf.cfaV1.createFlow({
       receiver: TradeableCashflow.address,
       superToken: daix.address,
       flowRate: aliceFlowRate,
+      userData: encodeLivePeerIdUserData(aliceLivePeerId),
     });
 
     const aliceOpTx = await aliceOp.exec(aliceAcct);
@@ -284,7 +309,7 @@ describe('sending flows', async function () {
 
     // assert.equal(updatedAliceFlowRate, aliceFlowRate, 'alice flow differed');
     // assert.equal(updatedAliceFlowRate, await getOwnerFlowRate(), 'alice rate diff than owner');
-    assert.equal(await getAppFlowRate(), 0, 'App flowRate not zero');
+    assert.equal(await getAppFlowRate(), '0', 'App flowRate not zero');
 
     console.log('---- part b: create a flow that overrides the existing one -----');
 
@@ -292,6 +317,7 @@ describe('sending flows', async function () {
       receiver: TradeableCashflow.address,
       superToken: daix.address,
       flowRate: jamesFlowRate,
+      userData: encodeLivePeerIdUserData(jamesLivePeerId),
     });
 
     const jamesOpTx = await jamesOp.exec(jamesAcct);
@@ -305,7 +331,8 @@ describe('sending flows', async function () {
 
     assert.equal(updatedOnwerFlowRate2, jamesFlowRate, 'owner flow is not the same as at the james flow rate');
 
-    assert.equal(appFlowRate, 0, 'App flowRate not zero');
+    assert.equal(appFlowRate, '0', 'App flowRate not zero');
+    assert.equal(await getCurrentLivePeerId(), jamesLivePeerId, 'live peer id should have changed');
 
     console.log('---- part c: delete the new flow -----');
 
@@ -327,7 +354,8 @@ describe('sending flows', async function () {
 
     assert.equal(jamesFlow, '0', 'james flow should be 0');
 
-    assert.equal(await getAppFlowRate(), 0, 'App flowRate not zero');
-    assert.equal(await getOwnerFlowRate(), 0, 'Onwer flowRate not zero');
+    assert.equal(await getAppFlowRate(), '0', 'App flowRate not zero');
+    assert.equal(await getOwnerFlowRate(), '0', 'Onwer flowRate not zero');
+    assert.equal(await getCurrentLivePeerId(), '', 'live peer id should have been cleared after deletion');
   });
 });

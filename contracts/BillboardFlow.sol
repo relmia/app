@@ -55,6 +55,8 @@ contract BillboardFlow is SuperAppBase {
 
     address internal _winningBidSender;
 
+    string private _activeStreamLivePeerId;
+
     constructor(
         ISuperfluid host,
         ISuperToken acceptedToken,
@@ -105,6 +107,10 @@ contract BillboardFlow is SuperAppBase {
         if (superToken != _acceptedToken) revert InvalidToken();
         if (agreementClass != address(cfaV1Lib.cfa)) revert InvalidAgreement();
         _;
+    }
+
+    function activeStreamLivePeerId() public view returns (string memory) {
+        return _activeStreamLivePeerId;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -164,6 +170,10 @@ contract BillboardFlow is SuperAppBase {
         (, int96 newAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
         // if there is a current winning bid
        (address sender,) = abi.decode(_agreementData, (address,address));
+        ISuperfluid.Context memory decompiledContext = _host.decodeCtx(_ctx);
+        (string memory newLivePeerId) = abi.decode(decompiledContext.userData, (string));
+
+
         if (_winningBid.flow > 0)  {
             // if the new flow rate is less than the current bid flow rate reject it
             if (newAgreementFlowRate <= _winningBid.flow) {
@@ -177,11 +187,13 @@ contract BillboardFlow is SuperAppBase {
             newCtx = cfaV1Lib.createFlowWithCtx(newCtx, _winningBidSender, _acceptedToken, _winningBid.flow);
             _updateCurrentWinningBid(sender, newAgreementFlowRate);
             newCtx = cfaV1Lib.updateFlowWithCtx(newCtx, _receiver, _acceptedToken, newAgreementFlowRate);
-            int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
-            console.logInt(netFlowRate);
+
+            _activeStreamLivePeerId = newLivePeerId;
+
             return newCtx;
         } 
 
+         _activeStreamLivePeerId = newLivePeerId;
         _updateCurrentWinningBid(sender, newAgreementFlowRate);
         return cfaV1Lib.createFlowWithCtx(newCtx, _receiver, _acceptedToken, newAgreementFlowRate);
     }
@@ -203,22 +215,45 @@ contract BillboardFlow is SuperAppBase {
         (, int96 updatedAgreementFlowRate, ,) = cfaV1Lib.cfa.getFlowByID(_superToken, _agreementId);
         (address sender,) = abi.decode(_agreementData, (address,address));
 
+        (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
+
+        if (outFlowRate >= updatedAgreementFlowRate) revert("cannot update with value less than output");
+
+        ISuperfluid.Context memory decompiledContext = _host.decodeCtx(_ctx);
+        (string memory newLivePeerId) = abi.decode(decompiledContext.userData, (string));
+        _activeStreamLivePeerId = newLivePeerId;
+
         _updateCurrentWinningBid(sender, updatedAgreementFlowRate);
 
-        return cfaV1Lib.updateFlowWithCtx(_ctx, _receiver, _acceptedToken, updatedAgreementFlowRate);
+        (, int96 inverseFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), sender);
+        newCtx = cfaV1Lib.updateFlowWithCtx(_ctx, _receiver, _acceptedToken, updatedAgreementFlowRate);
+
+        // here we delete the inverse flow if there was one created before.  we had to create it
+        // becuase for some reason deletion was causting an error, and creating an inverse one zeros
+        // the flow out
+        if (inverseFlowRate != 0)
+           newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx , sender, address(this), _acceptedToken);
+
+        return _updateOutflow(newCtx);
+    }
+
+    function _getFlowFromContractToAddress(address toAddress) internal view returns (int96 result) {
+      (, int96 inverseFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), toAddress);
+    
+      return inverseFlowRate;
     }
 
     function afterAgreementTerminated(
         ISuperToken _superToken,
         address _agreementClass,
-        bytes32, // _agreementId,
+        bytes32, // _agreementIdr
         bytes calldata _agreementData,
         bytes calldata, // _cbdata,
         bytes calldata _ctx
     ) external override onlyHost returns (bytes memory newCtx) {
-        // According to the app basic law, we should never revert in a termination callback
         console.log("TERMINATED FN");
         if (_superToken != _acceptedToken || _agreementClass != address(cfaV1Lib.cfa)) {
+            console.log("RETURN EARLY");
             return _ctx;
         }
 
@@ -226,6 +261,7 @@ contract BillboardFlow is SuperAppBase {
         if (sender == _winningBidSender) {
             // set as if there is no winning bid if the one deleted is the current winning bid.
             _winningBid.flow = 0;
+            _activeStreamLivePeerId = "";
         }
 
 
@@ -233,13 +269,13 @@ contract BillboardFlow is SuperAppBase {
 
 
         newCtx = _ctx;
-        newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx , address(this), _receiver, _acceptedToken);
         // here we delete the inverse flow if there was one created before.  we had to create it
         // becuase for some reason deletion was causting an error
-        if (inverseFlowRate != 0)
-           newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx , _receiver, address(this), _acceptedToken);
-    
-        return newCtx;
+        if (inverseFlowRate != 0) {
+           newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx, sender, address(this), _acceptedToken);
+        }
+
+        return _updateOutflow(newCtx);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -275,32 +311,28 @@ contract BillboardFlow is SuperAppBase {
     /// net flow rate.
     /// @param ctx The context byte array from the Host's calldata.
     /// @return newCtx The new context byte array to be returned to the Host.
-    // function _updateOutflow(bytes memory ctx) private returns (bytes memory newCtx) {
-    //     console.log("CALL UPDTATE OUTFLOW");
-    //     newCtx = ctx;
+    function _updateOutflow(bytes memory ctx) private returns (bytes memory newCtx) {
+        newCtx = ctx;
 
-    //     (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
+        int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
 
-    //     console.log("got da flow");
+        (, int96 outFlowRate, , ) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
 
-    //     if (_winningBid.flow == 0 && outFlowRate != 0) {
-    //         console.log("DELETE OUT");
-    //         newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx, address(this), _receiver, _acceptedToken);
-    //     } else if (outFlowRate != 0) {
-    //         console.log("UPDATE OUT");
-    //         console.logInt(_winningBid.flow);
-    //         newCtx = cfaV1Lib.updateFlowWithCtx(newCtx, _receiver, _acceptedToken, _winningBid.flow);
-            
+        int96 inFlowRate = netFlowRate + outFlowRate;
 
-    //         (, int96 outFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), _receiver);
-    //         console.log("UPDTATED OUT");
-    //         console.logInt(outFlowRate);
-    //         // newCtx = cfaV1Lib.updateFlowWithCtx(newCtx, _receiver, _acceptedToken, );
-    //     } else {
-    //         // The flow does not exist but should be created.
-    //         console.log("CREATE OUT");
-    //         newCtx = cfaV1Lib.createFlowWithCtx(newCtx, _receiver, _acceptedToken, _winningBid.flow);
-
-    //     }
-    // }
+        console.logInt(inFlowRate);
+        if (inFlowRate == 0) {
+            // The flow does exist and should be deleted.
+            console.log("deleting");
+            newCtx = cfaV1Lib.deleteFlowWithCtx(ctx, address(this), _receiver, _acceptedToken);
+        } else if (outFlowRate != 0) {
+            // The flow does exist and needs to be updated.
+            console.log("updating");
+            newCtx = cfaV1Lib.updateFlowWithCtx(ctx, _receiver, _acceptedToken, inFlowRate);
+        } else {
+            console.log("creating");
+            // The flow does not exist but should be created.
+            newCtx = cfaV1Lib.createFlowWithCtx(ctx, _receiver, _acceptedToken, inFlowRate);
+        }
+    }
 }
