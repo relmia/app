@@ -82,12 +82,24 @@ const AddModal = ({ setOpen, open }: { setOpen: any; open: boolean }): JSX.Eleme
           Add
         </Button>
       </DialogActions>
-      <Snackbar open={showSuccess} autoHideDuration={4000}>
-        <Alert severity="success" sx={{ width: '100%' }}>
+      <Snackbar open={showSuccess} autoHideDuration={3000}>
+        <Alert
+          severity="success"
+          sx={{ width: '100%' }}
+          onClose={() => {
+            setShowSuccess(false);
+          }}
+        >
           Transaction confirmed
         </Alert>
       </Snackbar>
-      <Snackbar open={showError} autoHideDuration={4000}>
+      <Snackbar
+        open={showError}
+        autoHideDuration={3000}
+        onClose={() => {
+          setShowError(false);
+        }}
+      >
         <Alert severity="error" sx={{ width: '100%' }}>
           There was an unexpected Error
         </Alert>
