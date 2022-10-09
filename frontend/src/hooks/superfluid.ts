@@ -45,3 +45,5 @@ export const useSuperToken = ({ sf, tokenName }: { sf: Framework | undefined; to
 
   return superToken;
 };
+
+export const useCurrentBidInfo = ({ sf, token }: { sf: Framework | undefined; token: SuperToken | undefined }) => {};
