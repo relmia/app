@@ -30,7 +30,7 @@ bytes32 constant CFA_ID = keccak256("org.superfluid-finance.agreements.ConstantF
     error InvalidAgreement();
 
 struct WinningBid { 
-   address sender;
+//    address sender;
    int96 flow;
 }
 
@@ -52,6 +52,8 @@ contract BillboardFlow is SuperAppBase {
     uint96 _currentFlow;
 
     WinningBid internal _winningBid;
+
+    address internal _winningBidSender;
 
     constructor(
         ISuperfluid host,
@@ -133,7 +135,7 @@ contract BillboardFlow is SuperAppBase {
     }
 
     function _updateCurrentWinningBid(address sender, int96 _winningBidFlow) internal {
-        _winningBid.sender = sender;
+        _winningBidSender = sender;
         _winningBid.flow = _winningBidFlow;
     
         console.log("updated winning bid");
@@ -170,8 +172,9 @@ contract BillboardFlow is SuperAppBase {
              
             // console.log("NEW FLOW RATE");
             console.logInt(newAgreementFlowRate);
-            console.log(_winningBid.sender);
-            newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx, _winningBid.sender, address(this), _acceptedToken);
+            console.log(_winningBidSender);
+            // for some reason deletion is leading to issues
+            newCtx = cfaV1Lib.createFlowWithCtx(newCtx, _winningBidSender, _acceptedToken, _winningBid.flow);
             _updateCurrentWinningBid(sender, newAgreementFlowRate);
             newCtx = cfaV1Lib.updateFlowWithCtx(newCtx, _receiver, _acceptedToken, newAgreementFlowRate);
             int96 netFlowRate = cfaV1Lib.cfa.getNetFlow(_acceptedToken, address(this));
@@ -220,14 +223,23 @@ contract BillboardFlow is SuperAppBase {
         }
 
         (address sender,) = abi.decode(_agreementData, (address,address));
-
-        if (sender == _winningBid.sender) {
+        if (sender == _winningBidSender) {
             // set as if there is no winning bid if the one deleted is the current winning bid.
-            console.log("CLEARING FLOW");
             _winningBid.flow = 0;
         }
 
-        return cfaV1Lib.deleteFlowWithCtx(_ctx, address(this), _receiver, _acceptedToken);
+
+        (, int96 inverseFlowRate, ,) = cfaV1Lib.cfa.getFlow(_acceptedToken, address(this), sender);
+
+
+        newCtx = _ctx;
+        newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx , address(this), _receiver, _acceptedToken);
+        // here we delete the inverse flow if there was one created before.  we had to create it
+        // becuase for some reason deletion was causting an error
+        if (inverseFlowRate != 0)
+           newCtx = cfaV1Lib.deleteFlowWithCtx(newCtx , _receiver, address(this), _acceptedToken);
+    
+        return newCtx;
     }
 
     // ---------------------------------------------------------------------------------------------
