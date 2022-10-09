@@ -9,7 +9,7 @@ import useTokenContractAddressAndAbi from '../../hooks/useTokenContractAddressAn
 import { Alert } from '../Alert/Alert';
 import { defaultAbiCoder } from '@ethersproject/abi';
 
-function encodeLivePeerIdUserData(livePeerId: string) {
+export function encodeLivePeerIdUserData(livePeerId: string) {
   return defaultAbiCoder.encode(['string'], [livePeerId]);
 }
 
@@ -29,7 +29,6 @@ const AddModal = ({ setOpen, open }: { setOpen: (open: boolean) => void; open: b
 
     try {
       setTxOnGoing(true);
-      console.log({ flowRate, livePeerId });
       const params: ICreateFlowParams = {
         receiver: contractAddress,
         superToken: superToken.address,

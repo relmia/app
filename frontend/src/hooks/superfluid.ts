@@ -4,7 +4,7 @@ import { Framework, IStream, PagedResult } from '@superfluid-finance/sdk-core';
 import { DEFAULT_TOKEN_NAME, MUMBAI } from '../utils/constants';
 import SuperToken from '@superfluid-finance/sdk-core/dist/module/SuperToken';
 import { BigNumber, Contract, ContractInterface } from 'ethers';
-import { formatEther } from 'ethers/lib/utils';
+import { formatEther, isAddress } from 'ethers/lib/utils';
 
 export const useSuperFluid = () => {
   const { chain } = useNetwork();
@@ -24,8 +24,6 @@ export const useSuperFluid = () => {
         resolverAddress,
       };
       const sf = await Framework.create(params);
-
-      console.log('CREATING TOKEN');
 
       setSf(sf);
     })();
@@ -58,13 +56,42 @@ export const useActiveLivePeerStreamId = () => {
     watch: true,
   });
 
-  console.log('datga', data);
   const result = data?.[0] as string;
 
   // if empty string, then assume not set and return null
   if (result === '') return null;
 
   return result;
+};
+
+export const tokenId = 1;
+const argsForOnwerOf = [tokenId];
+export const useContractReceiver = () => {
+  const { sf, contractAddress, contractAbi } = useContext(SuperfluidContext);
+  const { address } = useAccount();
+  const { data: readResult } = useContractRead({
+    addressOrName: contractAddress,
+    contractInterface: contractAbi,
+    functionName: 'ownerOf',
+    args: argsForOnwerOf,
+  });
+
+  if (!readResult) return undefined;
+
+  // @ts-ignore
+  const receiver = readResult as string;
+
+  const youAreReceiver = receiver.toLowerCase() === address?.toLowerCase();
+
+  const flowRate = 100;
+
+  console.log('read result', readResult);
+
+  return {
+    receiver,
+    flowRate,
+    youAreReceiver,
+  };
 };
 
 export const useContractStreams = (pollInterval = 5000) => {
@@ -146,7 +173,7 @@ export function toFlowPerMinuteAmount(amount: number) {
 export function toFlowPerMinute(amount: number) {
   const value = toFlowPerMinuteAmount(amount);
 
-  return `${amount} ${DEFAULT_TOKEN_NAME}/minute`;
+  return `${amount} ${DEFAULT_TOKEN_NAME} / min`;
 }
 
 export type SuperfluidContextType = {

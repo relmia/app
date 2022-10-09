@@ -1,10 +1,13 @@
 import { TransactionResponse } from '@ethersproject/providers';
+import { ICreateFlowParams } from '@superfluid-finance/sdk-core';
 import { BigNumber } from 'ethers';
 import { formatEther } from 'ethers/lib/utils';
 import { useCallback, useEffect, useState } from 'react';
 import { useAccount, useProvider, useSigner } from 'wagmi';
+import { useSuperFluid, useSuperToken } from '../hooks/superfluid';
 import useTokenContractAddressAndAbi, { GetContractArgs } from '../hooks/useTokenContractAddressAndAbi';
 import { DEFAULT_TOKEN_NAME } from '../utils/constants';
+import { encodeLivePeerIdUserData } from './Modal/AdModal';
 
 function calculateFlowRate(amount: any) {
   if (typeof Number(amount) !== 'number' || isNaN(Number(amount)) === true) {
@@ -26,7 +29,7 @@ const CreateFlowInner = ({
 }: {
   getContractArgs: GetContractArgs;
 }) => {
-  //onst sf = useSuperFluid();
+  const sf = useSuperFluid();
 
   const superToken = useSuperToken({
     sf,
@@ -87,7 +90,7 @@ const CreateFlowInner = ({
       setCreatingNewFlow(true);
       setTx(undefined);
       try {
-        const params = {
+        const params: ICreateFlowParams = {
           receiver: contractAddress,
           superToken: superToken.address,
           flowRate,
@@ -99,7 +102,7 @@ const CreateFlowInner = ({
 
         setTx(tx);
       } finally {
-        setCreatingNewFlow(-false);
+        setCreatingNewFlow(false);
       }
     })();
   }, [flowRate, sf, contractAddress, superToken, signer]);

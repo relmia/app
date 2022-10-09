@@ -43,20 +43,6 @@ function ManagementUserSettings() {
       <Container maxWidth="lg">
         <Grid container direction="row" justifyContent="center" alignItems="stretch" spacing={3}>
           <Grid item xs={12}>
-            <TabsWrapper
-              onChange={handleTabsChange}
-              value={currentTab}
-              variant="scrollable"
-              scrollButtons="auto"
-              textColor="primary"
-              indicatorColor="primary"
-            >
-              {tabs.map((tab) => (
-                <Tab key={tab.value} label={tab.label} value={tab.value} />
-              ))}
-            </TabsWrapper>
-          </Grid>
-          <Grid item xs={12}>
             {currentTab === 'activity' && <BillboardDashboard />}
             {currentTab === 'notifications' && <NotificationsTab />}
             {currentTab === 'security' && <SecurityTab />}
