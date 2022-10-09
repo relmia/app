@@ -20,7 +20,7 @@ const CardActionsWrapper = styled(CardActions)(
 `,
 );
 
-function ActivityTab() {
+function BillboardDashboard() {
   const [open, setOpen] = useState(false);
   const sf = useSuperFluid();
   const token = useSuperToken({ sf, tokenName: DEFAULT_TOKEN_NAME });
@@ -90,4 +90,4 @@ function ActivityTab() {
   );
 }
 
-export default ActivityTab;
+export default BillboardDashboard;

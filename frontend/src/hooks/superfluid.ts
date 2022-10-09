@@ -4,7 +4,7 @@ import { Framework } from '@superfluid-finance/sdk-core';
 import { MUMBAI } from '../utils/constants';
 import SuperToken from '@superfluid-finance/sdk-core/dist/module/SuperToken';
 
-export const useSuperFluid = ({ tokenName }: { tokenName: string }) => {
+export const useSuperFluid = () => {
   const { chain } = useNetwork();
   const provider = useProvider();
 
