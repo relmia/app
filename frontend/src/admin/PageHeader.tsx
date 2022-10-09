@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 function PageHeader() {
   // const user = {
@@ -7,11 +7,11 @@ function PageHeader() {
   // };
 
   return (
-    <>
+    <Box sx={{ textAlign: 'center' }}>
       <Typography variant="h3" component="h3" gutterBottom>
         Real-Time Billboard Auction
       </Typography>
-    </>
+    </Box>
   );
 }
 
