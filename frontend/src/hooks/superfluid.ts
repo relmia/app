@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useAccount, useNetwork, useProvider } from 'wagmi';
+import { useAccount, useContractRead, useNetwork, useProvider } from 'wagmi';
 import { Framework, IStream, PagedResult } from '@superfluid-finance/sdk-core';
 import { DEFAULT_TOKEN_NAME, MUMBAI } from '../utils/constants';
 import SuperToken from '@superfluid-finance/sdk-core/dist/module/SuperToken';
-import { BigNumber } from 'ethers';
+import { BigNumber, Contract, ContractInterface } from 'ethers';
 import { formatEther } from 'ethers/lib/utils';
 
 export const useSuperFluid = () => {
@@ -48,6 +48,24 @@ export const useSuperToken = ({ sf, tokenName }: { sf: Framework | undefined; to
   return superToken;
 };
 
+export const useActiveLivePeerStreamId = () => {
+  const { contractAddress, contractAbi } = useContext(SuperfluidContext);
+
+  const { data } = useContractRead({
+    addressOrName: contractAddress,
+    contractInterface: contractAbi,
+    functionName: 'activeStreamLivePeerId',
+    watch: true,
+  });
+
+  const result = data?.[0] as string;
+
+  // if empty string, then assume not set and return null
+  if (result === '') return null;
+
+  return result;
+};
+
 export const useContractStreams = (pollInterval = 5000) => {
   const { sf, contractAddress } = useContext(SuperfluidContext);
 
@@ -59,7 +77,7 @@ export const useContractStreams = (pollInterval = 5000) => {
   const [youAreActiveBidder, setYouAreActiveBidder] = useState(false);
 
   useEffect(() => {
-    (async () => {
+    const updateStreams = async () => {
       // TODO: single gql query
       const inputStreams = (
         await sf.query.listStreams({
@@ -89,15 +107,25 @@ export const useContractStreams = (pollInterval = 5000) => {
 
         .sort((x) => x.netFlow);
 
-      const activeStream = netInputStreams.filter((x) => x.netFlow > 0)[0];
+      console.log(netInputStreams);
+
+      const activeStream = netInputStreams.filter((x) => x.netFlow < 0)[0];
 
       const youAreActiveBidder = activeStream && activeStream?.sender.toLowerCase() === address?.toLowerCase();
 
       setAllStreams(netInputStreams);
       setActiveStream(activeStream);
       setYouAreActiveBidder(youAreActiveBidder);
-    })();
-  }, [pollInterval, sf]);
+    };
+
+    const interval = setInterval(() => {
+      updateStreams();
+    }, pollInterval);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [pollInterval, sf, contractAddress]);
 
   return { activeStream, allStreams, youAreActiveBidder };
 };
@@ -124,6 +152,7 @@ export type SuperfluidContextType = {
   sf: Framework;
   superToken: SuperToken;
   contractAddress: string;
+  contractAbi: ContractInterface;
 };
 
 // @ts-ignore

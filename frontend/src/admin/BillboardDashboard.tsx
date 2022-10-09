@@ -6,7 +6,7 @@ import CommentTwoToneIcon from '@mui/icons-material/CommentTwoTone';
 import ShareTwoToneIcon from '@mui/icons-material/ShareTwoTone';
 import Text from '../components/Text';
 import AddModal from '../components/Modal/AdModal';
-import { useContext, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import YoutubeEmbed from '../components/Video/Embed';
 import Balance from './Balance';
@@ -40,6 +40,7 @@ const InfoDebug = () => {
   console.log({
     activeAddress: activeStream?.sender,
     address,
+    contractAddress,
   });
 
   return (
@@ -151,6 +152,7 @@ function BillboardDashboardWrapper() {
         sf,
         superToken,
         contractAddress: contractAddress.addressOrName,
+        contractAbi: contractAddress.abi,
       }}
     >
       <BillboardDashboard></BillboardDashboard>
