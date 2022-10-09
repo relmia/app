@@ -249,5 +249,5 @@ declare module '@mui/material/styles' {
 }
 
 const themeMap: { [key: string]: Theme } = {
-  PureLightTheme,
+  PureLightTheme
 };
