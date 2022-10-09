@@ -45,3 +45,7 @@ Deploy the contract locally
 Start the frontend
 
     yarn start
+
+Run smart contract tests
+
+    yarn test
