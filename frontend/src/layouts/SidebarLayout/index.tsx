@@ -3,6 +3,7 @@ import { alpha, Box, lighten, useTheme } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
 import Header from './Header';
+
 // import Sidebar from './Sidebar';
 
 interface SidebarLayoutProps {
@@ -16,6 +17,7 @@ const SidebarLayout: FC<SidebarLayoutProps> = () => {
     <>
       <Box
         sx={{
+          width: '100%',
           flex: 1,
           height: '100%',
 

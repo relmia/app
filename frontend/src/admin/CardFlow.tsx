@@ -1,31 +1,10 @@
 import { ChangeEvent, useCallback, useContext, useState } from 'react';
-import {
-  Avatar,
-  Box,
-  Button,
-  Card,
-  CardHeader,
-  Divider,
-  Grid,
-  IconButton,
-  lighten,
-  styled,
-  Tooltip,
-  Typography,
-} from '@mui/material';
+import { Avatar, Box, Button, Card, Grid, IconButton, lighten, styled, Tooltip, Typography } from '@mui/material';
 import DeleteTwoToneIcon from '@mui/icons-material/DeleteTwoTone';
-import YoutubeEmbed from '../components/Video/Embed';
 import OpenSeaIcon from '../components/ButtonsNFT/OpenSea';
 import FlatPagePlayer from '../billboardDisplays/FlatPagePlayer';
-import {
-  SuperfluidContext,
-  toFlowPerMinute,
-  useContractReceiver,
-  useContractStreams,
-  useSuperFluid,
-} from '../hooks/superfluid';
+import { SuperfluidContext, toFlowPerMinute, useContractReceiver, useContractStreams } from '../hooks/superfluid';
 import AddModal from '../components/Modal/AdModal';
-import CreateFlowTest from '../components/CreateFlowTest';
 
 const AvatarAddWrapper = styled(Avatar)(
   ({ theme }) => `
@@ -196,11 +175,11 @@ function AdFlow() {
           </Grid>
           <Grid container spacing={3} sx={{ mt: 0.01 }}>
             <Grid item xs={12} sm={4}></Grid>
-            <Grid item xs={12} sm={2}></Grid>
-            <Grid item xs={12} sm={2}>
+            <Grid item xs={12} sm={4}>
               <Button
+                fullWidth={true}
                 startIcon={<OpenSeaIcon size={44}></OpenSeaIcon>}
-                variant={'text'}
+                variant={'outlined'}
                 sx={{ background: '#FAFDFF' }}
                 onClick={viewOnOpenSea}
               >
@@ -212,7 +191,7 @@ function AdFlow() {
         </Box>
       </Card>
       <AddModal setOpen={setPlaceBidOpen} open={placeBidOPen}></AddModal>
-      <CreateFlowTest />
+      {/*     <CreateFlowTest />*/}
     </>
   );
 }
